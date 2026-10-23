@@ -1,277 +1,1214 @@
 # BoundaryLens
 
-**Automated authorization security & regression testing platform for developer-owned web applications.**
+### Automated Authorization Security & Regression Testing Platform
 
-BoundaryLens discovers an application's API, models multiple authenticated identities, extracts
-candidate resources, automatically generates cross-identity authorization tests, and confirms
-broken access control with **evidence-based differential analysis** — then visualizes the
-authorization boundaries and gates CI against regressions.
+[![CI](https://github.com/Ak-369-1729/BoundaryLens/actions/workflows/ci.yml/badge.svg)](https://github.com/Ak-369-1729/BoundaryLens/actions/workflows/ci.yml)
+![Python](https://img.shields.io/badge/Python-3.12-3776AB?logo=python&logoColor=white)
+![FastAPI](https://img.shields.io/badge/FastAPI-Backend-009688?logo=fastapi&logoColor=white)
+![React](https://img.shields.io/badge/React-TypeScript-61DAFB?logo=react&logoColor=black)
+![Docker](https://img.shields.io/badge/Docker-Compose-2496ED?logo=docker&logoColor=white)
+![SQLite](https://img.shields.io/badge/SQLite-Persistence-003B57?logo=sqlite&logoColor=white)
+![Tests](https://img.shields.io/badge/tests-55%20passed-success)
+![License](https://img.shields.io/badge/license-MIT-green)
 
-It focuses on the authorization failures that status-code scanners miss: **BOLA/IDOR**, **broken
-function-level authorization (BFLA)**, **unauthenticated access**, **session-invalidation**, and
-**authorization regressions**. It is intentionally *not* a generic vulnerability scanner — no
-XSS/SQLi spraying, no brute force, no exploitation.
+> **BoundaryLens does not ask only whether an endpoint returned `200 OK`.  
+> It asks whether the identity making that request was actually supposed to receive the resource.**
 
-This is a course/portfolio project. The approach is not claimed to be novel, commercially proven,
-or production-ready. See [Limitations](#limitations) and [Ethical usage](#ethical-usage).
+BoundaryLens is an authorization-security testing platform that discovers an application's API, models multiple authenticated identities, learns candidate resources, generates cross-identity access-control tests, and confirms authorization failures using **evidence-based differential response analysis**.
 
----
+It is designed specifically for vulnerabilities such as:
 
-## Why BoundaryLens exists
+- **BOLA / IDOR**
+- **Broken Function Level Authorization**
+- **Broken Access Control**
+- **Unauthenticated Resource Access**
+- **Role & Privilege Boundary Violations**
+- **Session Invalidation Failures**
+- **Authorization Regressions introduced by new code**
 
-Authorization is application-specific and invisible to signature scanners: a `200 OK` can be a
-login page, an empty list, or another user's private record. BoundaryLens answers the question
-that matters — *"can identity A reach resource B when it shouldn't?"* — by driving the **same**
-requests under different identities and **comparing the responses with evidence**, not status codes.
+Unlike traditional payload-oriented scanners, BoundaryLens is intentionally focused on one difficult question:
 
----
-
-## Features
-
-- **Discovery from multiple sources** → one normalized endpoint model: **OpenAPI 3.x** (JSON/YAML,
-  or a live URL), **Postman v2.1**, **HAR** (with conservative path parameterization).
-- **Multi-identity manager**: anonymous, user, admin, and custom roles via **bearer token, cookie,
-  API key, custom headers, or login/session** — all credentials server-side from env vars only.
-- **JWT context analysis**: decodes header/claims **locally, without verifying or cracking** the
-  signature, as authorization metadata (no token forging).
-- **Automatic resource extraction**: finds resource identifiers (`id`, `orderId`, UUIDs, …) in
-  responses and associates them with the discovering identity — never extracting secrets.
-- **Automatic cross-identity test generation**: BOLA (A's resource requested by B), BFLA (non-admin
-  → privileged endpoint), and anonymous-access tests, bounded and safe-by-default (GET/HEAD only).
-- **Differential evidence engine**: deterministic **confidence score (0–100)** with reasons
-  (owner marker present, protected-field overlap, JSON similarity, …). A denial body never confirms.
-- **Authorization matrix** (Identity × Resource × Operation) and **authorization graph** built from
-  real findings.
-- **Reports**: JSON, self-contained printable HTML, and **SARIF 2.1.0** (GitHub Code Scanning).
-- **Regression baselines + CI gate**: snapshot a clean scan, fail the build when a boundary flips
-  from `BLOCKED` to `VIOLATION`.
-- **Preserved core**: the original manifest-driven scanner, vulnerable/fixed demo, dashboard,
-  redaction, scope/budget/timeout controls, cancellation, persistence, Docker and CI all still work.
+> **Can Identity A access Resource B even though the application's authorization model says it should not?**
 
 ---
 
-## Architecture
+## Why BoundaryLens Exists
 
-```
- Discovery sources                      Scanner service (FastAPI, one process)
- ┌───────────────────┐        ┌───────────────────────────────────────────────┐
- │ OpenAPI / Swagger │        │  Endpoint model  ─┐                            │
- │ Postman v2.1      │ ─────▶ │  Identity manager │                            │
- │ HAR               │        │  Resource graph   ├─▶ Test planner             │
- │ BoundaryLens      │        │  (JWT context)    │   (BOLA / BFLA / anon,     │
- │   manifest        │        │                   │    bounded, safe methods)  │
- └───────────────────┘        │                   ▼                            │
-                              │   Bounded HTTP engine (scope, budget, timeout, │
- Dashboard (React/TS) ◀─────▶ │   size cap, cancellation, redirect validation) │
-   Overview · Auto scan       │                   │                            │
-   Matrix · Graph             │                   ▼                            │
-   Inventory · Findings       │   Differential analyzer ─▶ Confidence + reasons│
-   Regression · Reports       │                   │                            │
-                              │                   ▼                            │
-                              │   Findings ─▶ Matrix · Graph · JSON/HTML/SARIF │
-                              │   Baseline ─▶ Regression ─▶ CI gate            │
-                              │   SQLite persistence                           │
-                              └─────────────────────┬─────────────────────────┘
-                                                    │ in-scope, non-destructive HTTP
-                                  ┌─────────────────┴─────────────────┐
-                                  ▼                                   ▼
-                         Ledgerly VULNERABLE                 Ledgerly FIXED  (demo)
+Most vulnerability scanners are good at asking questions like:
+
+```text
+Does this parameter accept SQL syntax?
+Does this page reflect JavaScript?
+Is this port exposed?
 ```
 
-See [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) for module-level detail and
-[`docs/THREAT_MODEL.md`](docs/THREAT_MODEL.md) for the safety model.
+Authorization is different.
+
+Consider:
+
+```http
+GET /api/orders/412
+Authorization: Bearer <bob-token>
+```
+
+The server returns:
+
+```http
+HTTP/1.1 200 OK
+```
+
+That alone tells us almost nothing.
+
+A `200` response could contain:
+
+```json
+{
+  "error": "not authorized"
+}
+```
+
+which may be safe.
+
+Or it could contain:
+
+```json
+{
+  "id": 412,
+  "owner": "alice",
+  "email": "alice@example.com",
+  "amount": 1499
+}
+```
+
+which means Bob has just accessed Alice's resource.
+
+BoundaryLens therefore does not treat status codes as vulnerability proof.
+
+Instead, it:
+
+1. establishes a legitimate baseline,
+2. replays equivalent access under another identity,
+3. compares normalized responses,
+4. correlates resource ownership,
+5. searches for protected-data overlap,
+6. checks authorization expectations,
+7. generates an explainable confidence score,
+8. reports a vulnerability only when the evidence supports it.
 
 ---
 
-## Quick start
+# 30-Second Technical Overview
 
-> Requires Docker with the Compose plugin.
+```text
+                 ┌───────────────────────────┐
+                 │        Target API         │
+                 └─────────────┬─────────────┘
+                               │
+             ┌─────────────────┴─────────────────┐
+             │                                   │
+       OpenAPI / Swagger                  HAR / Postman
+             │                                   │
+             └─────────────────┬─────────────────┘
+                               ▼
+                  Endpoint Discovery Engine
+                               │
+                               ▼
+                     Normalized API Model
+                               │
+                               ▼
+                       Identity Manager
+                  ┌────────┬────────┬────────┐
+                  │        │        │        │
+                Alice     Bob     Admin   Anonymous
+                  │        │        │        │
+                  └────────┴────┬───┴────────┘
+                                ▼
+                     Resource Discovery
+                                │
+                                ▼
+                       Resource Graph
+                                │
+                                ▼
+                  Authorization Test Planner
+                                │
+                                ▼
+              Identity × Resource × Operation
+                                │
+                                ▼
+                    Bounded HTTP Executor
+                                │
+                                ▼
+               Differential Evidence Engine
+                                │
+                   ┌────────────┴────────────┐
+                   ▼                         ▼
+               Findings              Confidence Score
+                   │
+        ┌──────────┼───────────┐
+        ▼          ▼           ▼
+      Matrix      Graph      Reports
+                              │
+                     JSON / HTML / SARIF
+                              │
+                              ▼
+                    Regression CI Gate
+```
+
+---
+
+# What Makes BoundaryLens Different?
+
+## 1. Multi-Identity Authorization Testing
+
+BoundaryLens models multiple identities simultaneously.
+
+For example:
+
+```text
+Alice
+Bob
+Admin
+Anonymous
+```
+
+Suppose Alice legitimately retrieves:
+
+```http
+GET /api/invoices/1001
+```
+
+BoundaryLens learns that the resource belongs to Alice.
+
+It can then test:
+
+```text
+Alice → Alice Invoice   ✅ baseline
+Bob   → Alice Invoice   🔍 authorization test
+Anon  → Alice Invoice   🔍 authorization test
+Admin → Alice Invoice   🔍 privilege-policy test
+```
+
+This converts authorization testing into a structured relationship between:
+
+```text
+Identity × Resource × Operation
+```
+
+---
+
+## 2. Automatic API Discovery
+
+BoundaryLens can discover application endpoints from:
+
+- **OpenAPI 3.x**
+- **Swagger-compatible specifications**
+- **Postman Collection v2.1**
+- **HAR browser/network captures**
+- **BoundaryLens authorization manifests**
+
+All discovery sources are converted into the same normalized internal endpoint representation.
+
+Example:
+
+```text
+GET    /api/users/{id}
+GET    /api/orders/{orderId}
+PATCH  /api/profile/{id}
+DELETE /api/orders/{orderId}
+GET    /api/admin/summary
+```
+
+This allows the authorization engine to operate independently of how an API was discovered.
+
+---
+
+## 3. Automatic Resource Discovery
+
+BoundaryLens inspects JSON responses and extracts candidate resources such as:
+
+```json
+{
+  "userId": 932,
+  "orderId": "ord_29873",
+  "invoice_id": 7721
+}
+```
+
+The scanner can associate these resources with the identity that legitimately discovered them:
+
+```text
+Alice
+├── User: 932
+├── Order: ord_29873
+└── Invoice: 7721
+
+Bob
+├── User: 614
+├── Order: ord_55123
+└── Invoice: 9928
+```
+
+This resource graph becomes the foundation for cross-identity authorization tests.
+
+Sensitive values such as passwords, bearer tokens, API keys and cookies are excluded/redacted.
+
+---
+
+# Automatic BOLA / IDOR Detection
+
+Consider:
+
+```text
+Alice → GET /api/invoices/7721
+```
+
+BoundaryLens establishes this as a legitimate baseline.
+
+It can then generate:
+
+```text
+Bob → GET /api/invoices/7721
+```
+
+If Bob receives Alice's resource, BoundaryLens may produce:
+
+```text
+HIGH — Broken Object Level Authorization
+
+Endpoint:
+GET /api/invoices/{invoiceId}
+
+Baseline Identity:
+Alice
+
+Testing Identity:
+Bob
+
+Target Resource:
+Invoice 7721
+
+Expected:
+Bob should not retrieve Alice's invoice.
+
+Observed:
+Bob received a response containing the same resource identifier and
+protected fields present in Alice's legitimate response.
+
+Evidence:
+✓ Target resource identifier matched
+✓ Owner marker matched Alice
+✓ Protected fields overlapped
+✓ Response structure closely matched baseline
+✓ Response was not an authorization-error structure
+
+CWE:
+CWE-639
+
+OWASP:
+API1 — Broken Object Level Authorization
+```
+
+---
+
+# Broken Function Level Authorization
+
+BoundaryLens also evaluates privilege boundaries.
+
+Example:
+
+```text
+Normal User
+      │
+      ▼
+GET /api/admin/summary
+```
+
+Expected:
+
+```text
+403 Forbidden
+```
+
+But if the endpoint returns privileged information:
+
+```text
+User ────────────► Admin Endpoint
+         ❌
+```
+
+BoundaryLens can classify the result as a potential:
+
+```text
+Broken Function Level Authorization
+CWE-285
+OWASP API5
+```
+
+---
+
+# Evidence-Based Differential Analysis
+
+BoundaryLens intentionally avoids:
+
+```text
+HTTP 200 = vulnerable
+HTTP 403 = safe
+```
+
+Instead, its evidence engine evaluates signals including:
+
+- HTTP status
+- normalized JSON structure
+- resource identifier overlap
+- ownership markers
+- protected-field overlap
+- response body similarity
+- content type
+- response length
+- redirects
+- authorization-error structures
+- selected response metadata
+- legitimate baseline comparison
+
+The result includes a deterministic:
+
+```text
+Confidence: 0–100
+```
+
+with human-readable reasons.
+
+For example:
+
+```text
+Confidence: 97%
+
+Reasons:
++ target resource ID matched
++ owner marker present
++ protected field overlap detected
++ high normalized JSON similarity
++ no authorization-error structure detected
+```
+
+The score is an **evidence score**, not a statistical probability and not CVSS.
+
+---
+
+# Authorization Matrix
+
+BoundaryLens converts scan results into an:
+
+## Identity × Resource × Operation Matrix
+
+Example:
+
+| Identity | Resource | READ | UPDATE | DELETE |
+|---|---|---:|---:|---:|
+| Alice | Alice Invoice | ✅ PASS | ✅ PASS | — |
+| Alice | Bob Invoice | 🟢 BLOCKED | 🟢 BLOCKED | — |
+| Bob | Alice Invoice | 🔴 VIOLATION | 🟢 BLOCKED | — |
+| Admin | Alice Invoice | ✅ PASS | ✅ PASS | — |
+| Anonymous | Alice Invoice | 🟢 BLOCKED | — | — |
+
+Supported states include:
+
+```text
+PASS
+BLOCKED
+VIOLATION
+UNSAFE
+NOT_TESTED
+ERROR
+```
+
+The matrix is generated from real scanner results rather than hard-coded demonstration data.
+
+---
+
+# Authorization Boundary Graph
+
+The dashboard also visualizes authorization relationships as a graph.
+
+Expected:
+
+```text
+Alice ──────► Alice Invoice
+
+Bob ────────► Bob Invoice
+
+Admin ──────► Alice Invoice
+      └─────► Bob Invoice
+```
+
+Unexpected access becomes an authorization violation:
+
+```text
+Bob ───────────────🔴──────────────► Alice Invoice
+```
+
+This makes complex access-control relationships easier to reason about during security reviews.
+
+---
+
+# JWT Authorization Context
+
+When operator-provided authentication uses JWTs, BoundaryLens can decode non-secret authorization metadata locally.
+
+Example:
+
+```json
+{
+  "sub": "user-123",
+  "role": "customer",
+  "scope": ["orders:read"],
+  "exp": 1792745521
+}
+```
+
+Supported contextual claims include concepts such as:
+
+```text
+sub
+role / roles
+scope / scp
+permissions
+aud
+iss
+exp
+iat
+```
+
+BoundaryLens does **not** attempt to:
+
+- crack JWT secrets,
+- forge tokens,
+- brute-force signatures,
+- exploit algorithm confusion.
+
+JWT parsing is used to understand authorization context, not attack authentication.
+
+---
+
+# Authorization Regression Testing
+
+Finding a vulnerability once is useful.
+
+Preventing it from returning is better.
+
+BoundaryLens can create an authorization baseline:
+
+```text
+Baseline
+
+Bob → Alice Invoice = BLOCKED
+Anonymous → Invoice = BLOCKED
+User → Admin Summary = BLOCKED
+```
+
+After a new application release:
+
+```text
+Current
+
+Bob → Alice Invoice = VIOLATION
+```
+
+BoundaryLens reports:
+
+```text
+NEW AUTHORIZATION REGRESSION
+
+Previous:
+BLOCKED
+
+Current:
+VIOLATION
+
+Endpoint:
+GET /api/invoices/{id}
+```
+
+This allows authorization behavior to become part of the development lifecycle rather than a one-time security exercise.
+
+---
+
+# DevSecOps / CI Integration
+
+BoundaryLens includes a GitHub Actions workflow that performs:
+
+```text
+Push / Pull Request
+        │
+        ├── Backend + integration tests
+        │
+        ├── React production build
+        │
+        ├── Authorization regression scan
+        │
+        ├── SARIF generation
+        │
+        └── GitHub Code Scanning upload
+```
+
+The CLI can fail a pipeline when authorization regressions exceed a configured severity threshold.
+
+Example:
 
 ```bash
-cp .env.example .env            # local, fictional demo values
-docker compose up --build
-```
-
-Open **http://127.0.0.1:8080** (bound to localhost). Three services start: `demo-vulnerable`,
-`demo-fixed`, and `scanner`. Stop with `docker compose down` (`-v` discards the scan database).
-
-### Without Docker
-
-```bash
-python3.12 -m venv .venv && . .venv/bin/activate
-pip install -r scanner/requirements.txt pytest==9.1.1
-cd frontend && npm install && npm run build && cd ..
-cp .env.example .env
-./run_local.sh                  # demo-vulnerable:8081, demo-fixed:8082, scanner:8080
-```
-
----
-
-## Example scan (dashboard)
-
-1. **Automated scan** → pick *Ledgerly (vulnerable)* → acknowledge authorization → **Start**.
-   The scanner imports the target's OpenAPI, logs in as each identity, extracts invoice resources,
-   and runs cross-identity tests.
-2. **Scan detail** shows per-check outcomes and sanitized activity; **Findings** lists confirmed
-   BOLA/BFLA/anonymous violations with confidence and evidence.
-3. **Authorization matrix** and **Authorization graph** visualize who reached what.
-4. Repeat for *Ledgerly (fixed)* — all violations disappear.
-
-### OpenAPI import
-
-The dashboard scan discovers endpoints from the target's own `/openapi.json`. You can also paste an
-OpenAPI/Postman/HAR document under **Automated scan → Discovery import** to preview the normalized
-endpoints, or import via the API:
-
-```bash
-curl -s localhost:8080/api/discovery/import \
-  -H 'content-type: application/json' \
-  -d "{\"source\":\"openapi\",\"content\":$(jq -Rs . < examples/ledgerly-openapi.json)}"
-```
-
-### Multi-identity setup
-
-In the manifest/dashboard, identities authenticate by login (session). For the CLI, configure
-identities in `boundarylens.yaml` by **env-var name** (never secret values):
-
-```yaml
-identities:
-  alice: { role: user,  kind: login,  username: alice, password_env: BL_ALICE_PASSWORD }
-  svc:   { role: user,  kind: bearer, token_env: SVC_TOKEN }     # bearer JWT -> claims decoded
-  admin: { role: admin, kind: login,  username: admin, password_env: BL_ADMIN_PASSWORD }
-```
-
-### Authorization matrix
-
-`Identity × Resource × Operation` with cells `PASS` / `BLOCKED` / `VIOLATION` / `UNSAFE` /
-`NOT_TESTED` / `ERROR`. `VIOLATION` cells carry a confidence score and link to the finding.
-
-### Regression testing
-
-```
-Dashboard → Regression:  create a baseline from a clean scan,
-                         then compare a later scan against it.
-Previous:  Bob → Alice's order = BLOCKED
-Current:   Bob → Alice's order = VIOLATION   ⇒  NEW AUTHORIZATION REGRESSION
-```
-
-### SARIF / CI
-
-```bash
-export BL_ALICE_PASSWORD=... BL_BOB_PASSWORD=... BL_ADMIN_PASSWORD=...
-# fail the build when a new high-severity regression appears:
 python -m boundarylens.cli scan \
   --config boundarylens.yaml \
   --baseline baseline.json \
   --fail-on high \
-  --report sarif --out boundarylens.sarif
+  --report sarif \
+  --out boundarylens.sarif
 ```
 
-Exit codes: `0` pass · `2` gating regression · `3` scan failed · `4` config error. The committed
-[`.github/workflows/ci.yml`](.github/workflows/ci.yml) runs tests, the frontend build, and an
-authorization-regression gate against the demo.
+Exit codes:
+
+| Code | Meaning |
+|---:|---|
+| `0` | Scan/gate passed |
+| `2` | Authorization regression triggered gate |
+| `3` | Scan failed |
+| `4` | Configuration error |
 
 ---
 
-## Security / scope model
+# SARIF Support
 
-- Scans run only against **configured origins** (loopback, or hosts in `BL_ALLOWED_HOSTS`); no
-  arbitrary browser-entered URLs. Redirects are validated against scope and not followed off-origin.
-- **Safe by default**: only `GET`/`HEAD` are executed. Mutating methods discovered in
-  OpenAPI/HAR/Postman are **never** run unless explicitly opted in; the manifest's `safe:false`
-  routes are never called.
-- Bounded **request budget, concurrency, timeouts, response-size cap**, and cancellation.
-- **Redaction** everywhere: passwords, cookies, tokens, and auth headers never appear in evidence,
-  logs, reports, or exports. Credentials stay server-side and come only from environment variables.
+BoundaryLens generates **SARIF 2.1.0** reports for integration with security tooling such as GitHub Code Scanning.
 
-Details in [`docs/THREAT_MODEL.md`](docs/THREAT_MODEL.md).
+Findings can contain:
 
----
+```text
+Rule ID
+Title
+Severity
+Endpoint
+HTTP Method
+CWE
+OWASP Classification
+Confidence
+Evidence Summary
+```
 
-## Demo
+Supported report formats include:
 
-The bundled **Ledgerly** app (fictional expenses) ships in two configurations selected by
-`LEDGERLY_MODE`:
-
-| Defect (vulnerable) | Fixed |
-|---------------------|-------|
-| Any logged-in user reads any invoice (BOLA) | Ownership enforced |
-| Any logged-in user reads `/api/admin/summary` (BFLA) | Role enforced |
-| Attachments served without auth (anonymous) | Auth + ownership enforced |
-| Logout keeps the server session valid | Session invalidated on logout |
-
-All data is deterministic and fictional. Reset a demo with `POST /__demo/reset` (or restart it).
+```text
+JSON
+HTML
+SARIF
+```
 
 ---
 
-## Tests
+# Safe-by-Default Scanner Design
+
+Security tooling should not create another security problem.
+
+BoundaryLens includes explicit safeguards.
+
+### Scope enforcement
+
+Scans operate only against configured origins.
+
+Redirects are checked before following them and cannot silently escape the authorized target scope.
+
+### Read-only defaults
+
+Automatic testing prioritizes:
+
+```text
+GET
+HEAD
+```
+
+Mutating operations are not automatically executed merely because they appeared in OpenAPI, HAR or Postman traffic.
+
+Routes explicitly marked:
+
+```text
+safe: false
+```
+
+remain protected from automatic execution.
+
+### Resource controls
+
+The HTTP execution layer includes:
+
+- request budgets,
+- concurrency limits,
+- request timeouts,
+- response-size limits,
+- cancellation support,
+- redirect validation.
+
+### Secret handling
+
+BoundaryLens redacts:
+
+```text
+Passwords
+Authorization headers
+Bearer tokens
+Cookies
+API keys
+Session secrets
+```
+
+from evidence, logs and exported reports.
+
+Credentials are supplied server-side through environment variables.
+
+---
+
+# Bundled Vulnerable vs Fixed Demo
+
+BoundaryLens ships with a fictional application called **Ledgerly** in two modes.
+
+```text
+Ledgerly Vulnerable
+        │
+        ▼
+   BoundaryLens
+        │
+        ▼
+Authorization violations 🔴
+```
+
+and:
+
+```text
+Ledgerly Fixed
+        │
+        ▼
+   BoundaryLens
+        │
+        ▼
+Boundaries enforced 🟢
+```
+
+The demo contains controlled examples of:
+
+| Vulnerable behaviour | Fixed behaviour |
+|---|---|
+| User can access another user's invoice | Resource ownership enforced |
+| User can access admin functionality | Role enforcement |
+| Protected attachment accessible anonymously | Authentication + ownership enforced |
+| Logout leaves server-side session valid | Session invalidated |
+
+The application contains fictional deterministic data and exists only for local testing.
+
+---
+
+# Tech Stack
+
+| Layer | Technology |
+|---|---|
+| Scanner Backend | Python 3.12 |
+| API Framework | FastAPI |
+| Data Models / Validation | Pydantic |
+| Persistence | SQLite / SQLAlchemy |
+| Frontend | React |
+| Language | TypeScript |
+| Build Tool | Vite |
+| HTTP Testing | Python async HTTP stack |
+| Containers | Docker + Docker Compose |
+| CI/CD | GitHub Actions |
+| Security Reporting | JSON / HTML / SARIF 2.1.0 |
+| Testing | Pytest |
+| API Discovery | OpenAPI / Postman / HAR |
+
+---
+
+# Quick Start
+
+## Requirements
+
+The easiest way to run BoundaryLens is with:
+
+```text
+Docker Desktop
+Docker Compose
+```
+
+Clone the repository:
 
 ```bash
-PYTHONPATH="$PWD/scanner:$PWD/demo_app" python -m pytest tests -q      # backend + integration
-cd frontend && npm run build                                          # frontend build + typecheck
+git clone https://github.com/Ak-369-1729/BoundaryLens.git
+cd BoundaryLens
 ```
 
-Integration tests run the **real** scanner against the **real** demo (both configs) — findings are
-not mocked. Coverage includes OpenAPI/Postman/HAR parsing, endpoint normalization, resource
-extraction, JWT decoding, planner safety, differential analysis/confidence, SARIF, baseline &
-regression, CI thresholds, redaction, scope/redirect restriction, dedup, cancellation, and report
-escaping. An optional Playwright smoke test runs with `BL_BROWSER_SMOKE=1`.
+Create your local environment file.
 
----
+### Windows PowerShell
 
-## Project structure
-
-```
-boundarylens/
-├── scanner/boundarylens/
-│   ├── app.py manager.py runner.py engine.py        # core service + manifest scanner (original)
-│   ├── manifest.py client.py auth.py storage.py …   # scope-bounded client, persistence, redaction
-│   ├── cli.py                                        # CI entry point (scan + regression gate)
-│   └── platform/                                     # the automated platform (new)
-│       ├── endpoint.py  discovery/{openapi,postman,har}.py
-│       ├── identities.py  resources.py  planner.py  evidence.py
-│       ├── autoscan.py  from_manifest.py  config.py
-│       ├── regression.py  sarif.py
-├── demo_app/ledgerly/        # intentionally vulnerable/fixed demo + deterministic seed
-├── frontend/                 # React + TypeScript dashboard (9 views)
-├── manifests/ledgerly.yaml   # declarative authorization manifest (original scanner)
-├── boundarylens.yaml         # automated-scan / CI config (env-var references only)
-├── examples/                 # sample OpenAPI, Postman, HAR
-├── docs/                     # ARCHITECTURE, THREAT_MODEL, RESUME, manifest-schema, sample report
-├── compose.yaml  .env.example  .github/workflows/ci.yml  LICENSE
+```powershell
+Copy-Item .env.example .env
 ```
 
+### Linux / macOS
+
+```bash
+cp .env.example .env
+```
+
+Start everything:
+
+```bash
+docker compose up --build
+```
+
+Open:
+
+```text
+http://127.0.0.1:8080
+```
+
+Docker starts:
+
+```text
+boundarylens scanner
+Ledgerly vulnerable demo
+Ledgerly fixed demo
+```
+
+Stop:
+
+```bash
+docker compose down
+```
+
+To reset the local BoundaryLens database as well:
+
+```bash
+docker compose down -v
+```
+
 ---
 
-## Limitations
+# Demo Workflow
 
-- BoundaryLens tests the authorization **expectations it can derive** (manifest rules, OpenAPI
-  security, discovered ownership) — it does not infer an application's complete business policy.
-- Confirmations are proven against **discovered** resources/endpoints, not an exhaustive object
-  enumeration. The confidence score is a **deterministic evidence score, not a probability**, and
-  not CVSS.
-- Resource/ownership inference is heuristic and conservative; unusual API shapes may need manifest
-  hints. Security-header items are hardening observations, interpreted for local HTTP.
-- The demo is intentionally insecure — run it locally only.
+After opening:
+
+```text
+http://127.0.0.1:8080
+```
+
+choose:
+
+```text
+Automated Scan
+        ↓
+Ledgerly Vulnerable
+        ↓
+Authorization acknowledgement
+        ↓
+Start Scan
+```
+
+BoundaryLens then performs a workflow similar to:
+
+```text
+Import API definition
+        ↓
+Discover endpoints
+        ↓
+Authenticate identities
+        ↓
+Establish legitimate baselines
+        ↓
+Extract candidate resources
+        ↓
+Create ownership relationships
+        ↓
+Generate cross-identity tests
+        ↓
+Execute bounded requests
+        ↓
+Perform differential analysis
+        ↓
+Generate findings
+        ↓
+Build Matrix + Graph
+        ↓
+Generate reports
+```
+
+Then repeat against:
+
+```text
+Ledgerly Fixed
+```
+
+to verify that the corrected authorization implementation removes the findings.
 
 ---
 
-## Ethical usage
+# Dashboard
 
-BoundaryLens is for systems you own or are explicitly authorized to test. Every scan requires a
-configured origin and an authorization acknowledgment, restricts traffic to that scope, and stays
-read-only by default. Do not point it at third-party systems without written permission.
+BoundaryLens includes dedicated views for:
+
+### Overview
+
+High-level scan statistics and security posture.
+
+### Automated Scan
+
+Discovery-driven authorization testing.
+
+### Inventory
+
+Discovered endpoints and application resources.
+
+### Findings
+
+Confirmed authorization violations and supporting evidence.
+
+### Finding Detail
+
+Full vulnerability explanation, evidence and remediation context.
+
+### Authorization Matrix
+
+Identity × Resource × Operation relationships.
+
+### Authorization Graph
+
+Visual access-control relationships.
+
+### Baseline
+
+Create authorization snapshots for later regression comparisons.
+
+### Regression
+
+Identify authorization boundaries that changed between scans.
 
 ---
 
-## Technical summary
+# Configuration
 
-Built an automated authorization-testing platform (Python/FastAPI, React/TypeScript, SQLite) that
-discovers an API from OpenAPI/Postman/HAR, drives it under multiple identities, and detects broken
-object- and function-level authorization via **evidence-based differential analysis** with a
-deterministic confidence score — rather than status codes. Added an authorization matrix/graph,
-SARIF output, and a baseline/regression CI gate, all behind strict scope, budget, and redaction
-controls. More in [`docs/RESUME.md`](docs/RESUME.md).
+BoundaryLens supports configuration through:
 
---Anwesha Kar#   B o u n d a r y L e n s  
- 
+```text
+boundarylens.yaml
+```
+
+Example concept:
+
+```yaml
+target:
+  base_url: http://127.0.0.1:8081
+
+identities:
+  alice:
+    role: user
+    kind: login
+    username: alice
+    password_env: BL_ALICE_PASSWORD
+
+  bob:
+    role: user
+    kind: login
+    username: bob
+    password_env: BL_BOB_PASSWORD
+
+  admin:
+    role: admin
+    kind: login
+    username: admin
+    password_env: BL_ADMIN_PASSWORD
+
+scan:
+  request_budget: 200
+  concurrency: 5
+  timeout_seconds: 5
+```
+
+Actual credentials are intentionally referenced through environment variables rather than committed into configuration files.
+
+---
+
+# Testing
+
+Run the backend and integration test suite:
+
+```bash
+PYTHONPATH="$PWD/scanner:$PWD/demo_app" python -m pytest tests -q
+```
+
+Current verified result:
+
+```text
+55 passed
+1 skipped
+```
+
+The tests cover major behavior including:
+
+- OpenAPI discovery
+- Postman discovery
+- HAR discovery
+- endpoint normalization
+- resource extraction
+- JWT context parsing
+- cross-identity planning
+- scanner safety rules
+- differential analysis
+- confidence scoring
+- SARIF generation
+- baseline creation
+- regression detection
+- CLI gate thresholds
+- scope restrictions
+- redirect restrictions
+- cancellation
+- finding detection
+- redaction
+- vulnerable/fixed integration scans
+
+The integration suite exercises the scanner against the real bundled demo rather than simply mocking findings.
+
+Build the frontend:
+
+```bash
+cd frontend
+npm install
+npm run build
+```
+
+---
+
+# Repository Structure
+
+```text
+BoundaryLens/
+│
+├── scanner/
+│   └── boundarylens/
+│       ├── app.py
+│       ├── client.py
+│       ├── engine.py
+│       ├── findings.py
+│       ├── manager.py
+│       ├── reporting.py
+│       ├── storage.py
+│       │
+│       └── platform/
+│           ├── autoscan.py
+│           ├── endpoint.py
+│           ├── evidence.py
+│           ├── identities.py
+│           ├── planner.py
+│           ├── regression.py
+│           ├── resources.py
+│           ├── sarif.py
+│           │
+│           └── discovery/
+│               ├── openapi.py
+│               ├── postman.py
+│               └── har.py
+│
+├── frontend/
+│   └── src/
+│       ├── views/
+│       │   ├── Overview.tsx
+│       │   ├── AutoScan.tsx
+│       │   ├── Inventory.tsx
+│       │   ├── Findings.tsx
+│       │   ├── Matrix.tsx
+│       │   ├── Graph.tsx
+│       │   ├── Baseline.tsx
+│       │   └── Regression.tsx
+│       └── ...
+│
+├── demo_app/
+│   └── ledgerly/
+│
+├── manifests/
+│   └── ledgerly.yaml
+│
+├── examples/
+│   ├── ledgerly-openapi.json
+│   ├── ledgerly.postman_collection.json
+│   └── ledgerly-traffic.har
+│
+├── docs/
+│   ├── ARCHITECTURE.md
+│   ├── THREAT_MODEL.md
+│   ├── RESUME.md
+│   └── sample-report/
+│
+├── tests/
+│
+├── .github/
+│   └── workflows/
+│       └── ci.yml
+│
+├── boundarylens.yaml
+├── compose.yaml
+├── .env.example
+├── LICENSE
+└── README.md
+```
+
+---
+
+# Engineering Decisions
+
+Several design decisions were intentional.
+
+### Authorization over vulnerability breadth
+
+BoundaryLens does not attempt to become another:
+
+```text
+XSS + SQLi + port scanner + directory brute-forcer + everything scanner
+```
+
+Its scope is deliberately narrow:
+
+> **authorization security testing**
+
+This allows the scanner to model identities, ownership and privilege relationships in greater depth.
+
+---
+
+### Evidence over status codes
+
+Authorization failures require contextual evidence.
+
+BoundaryLens therefore compares legitimate and unauthorized executions rather than simply mapping:
+
+```text
+200 → vulnerable
+403 → safe
+```
+
+---
+
+### Deterministic explainability over opaque classification
+
+Confidence scores are derived from observable evidence.
+
+The scanner can explain why a finding was generated.
+
+---
+
+### Safe execution over maximum request coverage
+
+Automatically executing every endpoint discovered from an API specification would be dangerous.
+
+BoundaryLens therefore prioritizes safe read-only testing and explicitly controls mutation behavior.
+
+---
+
+### Regression testing over one-time scanning
+
+Authorization behavior should be continuously verified.
+
+The baseline/regression engine allows access-control expectations to become part of CI/CD.
+
+---
+
+# Documentation
+
+More detailed engineering documentation is available in:
+
+- [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) — internal architecture and data flow
+- [`docs/THREAT_MODEL.md`](docs/THREAT_MODEL.md) — scanner threat model and safeguards
+- [`docs/RESUME.md`](docs/RESUME.md) — technically accurate project presentation
+- [`docs/manifest-schema.md`](docs/manifest-schema.md) — authorization manifest format
+- [`docs/sample-report/`](docs/sample-report/) — example scanner reports
+
+---
+
+# Current Limitations
+
+BoundaryLens is a portfolio/course security engineering project rather than a commercial DAST platform.
+
+Important limitations include:
+
+- application-specific business rules cannot always be inferred automatically,
+- resource ownership inference is necessarily heuristic,
+- authorization coverage depends on discovered endpoints and resources,
+- unusual API designs may require manifest hints,
+- confidence scores represent deterministic evidence strength rather than probabilities,
+- automatic mutation testing is intentionally restricted,
+- the bundled intentionally vulnerable application should only be run locally.
+
+These limitations are deliberate and documented rather than hidden behind unrealistic product claims.
+
+---
+
+# Ethical Usage
+
+BoundaryLens is designed only for:
+
+```text
+✓ applications you own
+✓ local development environments
+✓ intentionally vulnerable labs
+✓ systems you have explicit authorization to test
+```
+
+Do not use BoundaryLens against third-party systems without permission.
+
+The scanner includes technical safeguards, but authorization from the system owner remains mandatory.
+
+---
+
+# Project Summary
+
+**BoundaryLens is an automated authorization-testing platform built with Python/FastAPI and React/TypeScript that discovers APIs from OpenAPI, Postman and HAR; models multiple authenticated identities; extracts resource ownership relationships; generates bounded cross-identity authorization tests; and detects BOLA/BFLA failures through evidence-based differential response analysis.**
+
+It additionally provides:
+
+```text
+Authorization Matrix
+Authorization Graph
+JWT authorization context
+JSON / HTML / SARIF reporting
+Regression baselines
+GitHub Actions CI gating
+Scope enforcement
+Secret redaction
+Request budgets
+Safe-by-default execution
+```
+
+---
+
+# Resume Version
+
+> **BoundaryLens — Authorization Security & Regression Testing Platform**  
+> Built a FastAPI + React security platform that discovers API endpoints and resources from OpenAPI/Postman/HAR, models multiple user and role identities, and automatically generates cross-identity authorization tests for BOLA/IDOR and BFLA. Implemented evidence-based differential response analysis, authorization matrix/graph visualization, SARIF reporting, strict scanner guardrails, and CI/CD regression gating.
+
+---
+
+# Author
+
+**Anwesha Kar**
+
+Computer Science & Engineering  
+Chandigarh University
+
+GitHub: [@Ak-369-1729](https://github.com/Ak-369-1729)
+
+---
+
+# License
+
+BoundaryLens is released under the **MIT License**.
+
+The bundled Ledgerly demo application is intentionally vulnerable and must not be deployed publicly.
+
+---
+
+<p align="center">
+  <strong>BoundaryLens</strong><br/>
+  Test the boundary — not just the endpoint.
+</p>
