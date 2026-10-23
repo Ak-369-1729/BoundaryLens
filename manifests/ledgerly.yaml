@@ -1,0 +1,112 @@
+# BoundaryLens scan manifest for the included Ledgerly demo application.
+# Schema: docs/manifest-schema.md. ${VAR:-default} is replaced from the environment.
+version: 1
+name: Ledgerly local demo
+
+authorization:
+  statement: >-
+    Ledgerly is a fictional application shipped with BoundaryLens and started
+    on this machine. The operator owns it and may test it.
+
+targets:
+  - id: ledgerly-vulnerable
+    label: Ledgerly demo (vulnerable configuration)
+    origin: ${BL_DEMO_VULNERABLE_ORIGIN:-http://127.0.0.1:8081}
+    configuration: vulnerable
+    local_demo: true
+    health_path: /api/public/status
+  - id: ledgerly-fixed
+    label: Ledgerly demo (fixed configuration)
+    origin: ${BL_DEMO_FIXED_ORIGIN:-http://127.0.0.1:8082}
+    configuration: fixed
+    local_demo: true
+    health_path: /api/public/status
+
+limits:
+  max_requests: 150
+  concurrency: 4
+  timeout_seconds: 5
+  max_response_bytes: 262144
+  max_redirects: 3
+
+authentication:
+  login: {method: POST, path: /api/auth/login, username_field: username, password_field: password}
+  logout: {method: POST, path: /api/auth/logout}
+  session_cookie: ledgerly_session
+  verify_path: /api/me
+  login_page_paths: [/login]
+  login_page_markers: ['type="password"']
+
+identities:
+  - {id: anonymous, role: anonymous}
+  - {id: alice, role: user, username: alice, password_env: BL_ALICE_PASSWORD}
+  - {id: bob, role: user, username: bob, password_env: BL_BOB_PASSWORD}
+  - {id: admin, role: admin, username: admin, password_env: BL_ADMIN_PASSWORD}
+
+resources:
+  - {id: alice-invoice-1, owner: alice, value: inv_a7Kq2LmZ9x, markers: [BLM-ALICE-INV-7F3A, BLM-ALICE-ATT-7F3A]}
+  - {id: alice-invoice-2, owner: alice, value: inv_a3Vt8RpQ1c, markers: [BLM-ALICE-INV-2C8D, BLM-ALICE-ATT-2C8D]}
+  - {id: bob-invoice-1, owner: bob, value: inv_b5Nc4WyH6e, markers: [BLM-BOB-INV-5E19, BLM-BOB-ATT-5E19]}
+  - {id: admin-summary, owner_role: admin, markers: [BLM-ADMIN-SUMMARY-91C2]}
+
+routes:
+  - id: invoice-detail
+    method: GET
+    path: /api/invoices/{resource}
+    resources: [alice-invoice-1, alice-invoice-2, bob-invoice-1]
+    allow: [owner, "role:admin"]
+    owner_field: data.invoice.owner
+    compare_fields: [data.invoice.id, data.invoice.owner, data.invoice.confidential_ref]
+  - id: invoice-attachments
+    method: GET
+    path: /api/invoices/{resource}/attachments
+    resources: [alice-invoice-1, bob-invoice-1]
+    allow: [owner, "role:admin"]
+    owner_field: data.owner
+    compare_fields: [data.invoice_id, data.owner]
+  - id: invoice-page
+    method: GET
+    path: /app/invoices/{resource}
+    resources: [alice-invoice-1, bob-invoice-1]
+    allow: [owner, "role:admin"]
+  - id: invoice-list
+    method: GET
+    path: /api/invoices
+    allow: [authenticated]
+  - id: current-user
+    method: GET
+    path: /api/me
+    allow: [authenticated]
+  - id: admin-summary
+    method: GET
+    path: /api/admin/summary
+    resources: [admin-summary]
+    allow: ["role:admin"]
+    compare_fields: [data.admin_marker]
+  - id: admin-disable-user
+    method: POST
+    path: /api/admin/users/bob/disable
+    allow: ["role:admin"]
+    safe: false
+  - id: public-status
+    method: GET
+    path: /api/public/status
+    allow: [public]
+
+compare:
+  ignore_fields: [request_id, generated_at]
+
+workflow:
+  id: session-lifecycle
+  identity: alice
+  steps:
+    - {id: login, action: login, label: Sign in with a dedicated test session}
+    - {id: list, action: request, route: invoice-list, expect_resource: alice-invoice-1, label: List own invoices}
+    - {id: fetch, action: request, route: invoice-detail, resource: alice-invoice-1, label: Fetch own invoice}
+    - {id: logout, action: logout, label: Sign out the dedicated session}
+    - {id: retry, action: request, route: invoice-detail, resource: alice-invoice-1, after_logout: true, label: Reuse the signed-out session}
+
+observations:
+  html_path: /
+  api_route: invoice-list
+  api_identity: alice

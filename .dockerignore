@@ -1,0 +1,11 @@
+**/__pycache__
+**/*.pyc
+.venv
+frontend/node_modules
+frontend/dist
+*.db
+.run
+.git
+.github
+docs
+tests

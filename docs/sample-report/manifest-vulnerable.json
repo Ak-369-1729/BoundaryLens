@@ -1,0 +1,1049 @@
+{
+    "report_type": "boundarylens.scan-report",
+    "schema_version": 1,
+    "generated_at": "2026-10-23T03:36:42.005852+00:00",
+    "scope": {
+        "manifest": "Ledgerly local demo",
+        "authorization_statement": "Ledgerly is a fictional application shipped with BoundaryLens and started on this machine. The operator owns it and may test it.",
+        "note": "Authorized scan of a developer-owned target. Findings and evidence are sanitized: no passwords, session tokens or authorization headers are included."
+    },
+    "target": {
+        "id": "ledgerly-vulnerable",
+        "configuration": "vulnerable",
+        "origin": "http://127.0.0.1:8081"
+    },
+    "scan": {
+        "id": "d4e1f551-4e89-4b2a-a23c-cb6776fea6bb",
+        "status": "completed",
+        "created_at": "2026-10-23T03:36:38.977001",
+        "started_at": "2026-10-23T03:36:38.981164",
+        "finished_at": "2026-10-23T03:36:39.187246",
+        "requests_sent": 29,
+        "request_budget": 150,
+        "limits": {
+            "concurrency": 4,
+            "timeout_seconds": 5.0,
+            "max_response_bytes": 262144,
+            "max_redirects": 3
+        },
+        "error": null
+    },
+    "checks_executed": [
+        {
+            "check_id": "BL-CROSS-USER",
+            "title": "Cross-user private-resource access",
+            "coverage": "assessed"
+        },
+        {
+            "check_id": "BL-ADMIN-READ",
+            "title": "Non-admin access to an administrator-only operation",
+            "coverage": "assessed"
+        },
+        {
+            "check_id": "BL-ANON-API",
+            "title": "Anonymous access to a protected API resource",
+            "coverage": "assessed"
+        },
+        {
+            "check_id": "BL-SESSION-REUSE",
+            "title": "Session not invalidated after logout",
+            "coverage": "assessed"
+        },
+        {
+            "check_id": "BL-SEC-CONFIG",
+            "title": "Security configuration observation",
+            "coverage": "assessed"
+        }
+    ],
+    "severity_counts": {
+        "critical": 0,
+        "high": 8,
+        "medium": 0,
+        "low": 5,
+        "info": 0,
+        "confirmed": 8,
+        "observation": 5,
+        "total": 13
+    },
+    "workflow": {
+        "id": "session-lifecycle",
+        "identity": "alice",
+        "steps": [
+            {
+                "id": "login",
+                "label": "Sign in with a dedicated test session",
+                "status": 200,
+                "ok": true,
+                "note": "",
+                "evidence": {
+                    "request": {
+                        "identity": "alice-session-probe",
+                        "method": "POST",
+                        "url": "http://127.0.0.1:8081/api/auth/login",
+                        "headers": {
+                            "accept": "application/json, text/html;q=0.8",
+                            "content-type": "application/json"
+                        },
+                        "body": "{\n  \"username\": \"alice\",\n  \"password\": \"[REDACTED]\"\n}"
+                    },
+                    "response": {
+                        "status": 200,
+                        "headers": {
+                            "content-length": "196",
+                            "content-type": "application/json",
+                            "set-cookie": "ledgerly_session=[REDACTED]; Path=/"
+                        },
+                        "body_excerpt": "{\n  \"data\": {\n    \"user\": {\n      \"username\": \"alice\",\n      \"display_name\": \"Alice Moreau (fictional)\",\n      \"role\": \"user\"\n    }\n  },\n  \"request_id\": \"f31630ae-4075-480f-bea0-d30e52cdddda\",\n  \"generated_at\": \"2026-10-23T03:36:39.170973+00:00\"\n}",
+                        "truncated": false,
+                        "redirects": [],
+                        "redirect_blocked": null
+                    },
+                    "error": null,
+                    "duration_ms": 3
+                }
+            },
+            {
+                "id": "fetch",
+                "label": "Fetch own resource with the session",
+                "status": 200,
+                "ok": true,
+                "note": "",
+                "evidence": {
+                    "request": {
+                        "identity": "alice-session-probe",
+                        "method": "GET",
+                        "url": "http://127.0.0.1:8081/api/invoices/inv_a7Kq2LmZ9x",
+                        "headers": {
+                            "accept": "application/json, text/html;q=0.8",
+                            "cookie": "ledgerly_session=[REDACTED]"
+                        },
+                        "body": null
+                    },
+                    "response": {
+                        "status": 200,
+                        "headers": {
+                            "content-length": "421",
+                            "content-type": "application/json"
+                        },
+                        "body_excerpt": "{\n  \"data\": {\n    \"invoice\": {\n      \"id\": \"inv_a7Kq2LmZ9x\",\n      \"number\": \"EXP-2026-0141\",\n      \"owner\": \"alice\",\n      \"vendor\": \"Northwind Office Supply\",\n      \"category\": \"office\",\n      \"amount\": \"412.50\",\n      \"currency\": \"EUR\",\n      \"status\": \"approved\",\n      \"issued_on\": \"2026-03-04\",\n      \"notes\": \"Ergonomic chair and monitor arm for home office.\",\n      \"confidential_ref\": \"BLM-ALICE-INV-7F3A\"\n    }\n  },\n  \"request_id\": \"f401d9f7-1469-4b42-8cb1-6bd0d93b7780\",\n  \"generated_at\": \"2026-10-23T03:36:39.173165+00:00\"\n}",
+                        "truncated": false,
+                        "redirects": [],
+                        "redirect_blocked": null
+                    },
+                    "error": null,
+                    "duration_ms": 1
+                }
+            },
+            {
+                "id": "logout",
+                "label": "Sign the session out",
+                "status": 200,
+                "ok": true,
+                "note": "",
+                "evidence": {
+                    "request": {
+                        "identity": "alice-session-probe",
+                        "method": "POST",
+                        "url": "http://127.0.0.1:8081/api/auth/logout",
+                        "headers": {
+                            "accept": "application/json, text/html;q=0.8",
+                            "cookie": "ledgerly_session=[REDACTED]"
+                        },
+                        "body": null
+                    },
+                    "response": {
+                        "status": 200,
+                        "headers": {
+                            "content-length": "130",
+                            "content-type": "application/json",
+                            "set-cookie": "ledgerly_session=[REDACTED]; expires=Fri, 23 Oct 2026 03:36:39 GMT; Max-Age=0; Path=/; SameSite=lax"
+                        },
+                        "body_excerpt": "{\n  \"data\": {\n    \"logged_out\": true\n  },\n  \"request_id\": \"ce891410-2658-40d7-91a3-00a199e55590\",\n  \"generated_at\": \"2026-10-23T03:36:39.175731+00:00\"\n}",
+                        "truncated": false,
+                        "redirects": [],
+                        "redirect_blocked": null
+                    },
+                    "error": null,
+                    "duration_ms": 2
+                }
+            },
+            {
+                "id": "retry",
+                "label": "Reuse the signed-out session",
+                "status": 200,
+                "ok": false,
+                "note": "session still valid after logout",
+                "evidence": {
+                    "request": {
+                        "identity": "alice-session-probe",
+                        "method": "GET",
+                        "url": "http://127.0.0.1:8081/api/invoices/inv_a7Kq2LmZ9x",
+                        "headers": {
+                            "accept": "application/json, text/html;q=0.8",
+                            "cookie": "ledgerly_session=[REDACTED]"
+                        },
+                        "body": null
+                    },
+                    "response": {
+                        "status": 200,
+                        "headers": {
+                            "content-length": "421",
+                            "content-type": "application/json"
+                        },
+                        "body_excerpt": "{\n  \"data\": {\n    \"invoice\": {\n      \"id\": \"inv_a7Kq2LmZ9x\",\n      \"number\": \"EXP-2026-0141\",\n      \"owner\": \"alice\",\n      \"vendor\": \"Northwind Office Supply\",\n      \"category\": \"office\",\n      \"amount\": \"412.50\",\n      \"currency\": \"EUR\",\n      \"status\": \"approved\",\n      \"issued_on\": \"2026-03-04\",\n      \"notes\": \"Ergonomic chair and monitor arm for home office.\",\n      \"confidential_ref\": \"BLM-ALICE-INV-7F3A\"\n    }\n  },\n  \"request_id\": \"d25cbc0c-f8ad-4fb6-aeaa-2036f61a698a\",\n  \"generated_at\": \"2026-10-23T03:36:39.178208+00:00\"\n}",
+                        "truncated": false,
+                        "redirects": [],
+                        "redirect_blocked": null
+                    },
+                    "error": null,
+                    "duration_ms": 2
+                }
+            }
+        ],
+        "confirmed_finding": "BL-dc76276a64"
+    },
+    "limitations": [
+        "The scanner verifies the authorization rules declared in the manifest; it does not infer the application's complete business policy.",
+        "Confirmations are proven against seeded demo resources named in the manifest, not an exhaustive enumeration of every object.",
+        "Security-header and cookie items are hardening observations, interpreted for local HTTP development."
+    ],
+    "findings": [
+        {
+            "finding_id": "BL-385b68868f",
+            "check_id": "BL-ADMIN-READ",
+            "title": "Non-admin access to an administrator-only operation",
+            "severity": "high",
+            "confirmation": "confirmed",
+            "method": "GET",
+            "route": "/api/admin/summary",
+            "actor_identity": "alice",
+            "expected_rule": "access limited to role 'admin'; owner is role:admin",
+            "expected_behavior": "Request denied (404/403) with no private resource data.",
+            "observed_behavior": "HTTP 200; response contains private marker(s) ['BLM-ADMIN-SUMMARY-91C2']",
+            "severity_rationale": "A non-administrator obtained administrator-only data, a privilege-boundary failure.",
+            "cwe": "CWE-285",
+            "remediation": "Enforce a server-side role check on this operation before returning data; do not rely on the UI hiding it.",
+            "limitations": "Confirmed against the seeded demo resource named in the manifest. The scanner does not enumerate every object; other instances of the same route may share the defect.",
+            "instance_count": 1,
+            "instances": [
+                {
+                    "method": "GET",
+                    "path": "/api/admin/summary",
+                    "status": 200,
+                    "resource": "admin-summary",
+                    "evidence": {
+                        "request": {
+                            "identity": "alice",
+                            "method": "GET",
+                            "url": "http://127.0.0.1:8081/api/admin/summary",
+                            "headers": {
+                                "accept": "application/json, text/html;q=0.8",
+                                "cookie": "ledgerly_session=[REDACTED]"
+                            },
+                            "body": null
+                        },
+                        "response": {
+                            "status": 200,
+                            "headers": {
+                                "content-length": "272",
+                                "content-type": "application/json"
+                            },
+                            "body_excerpt": "{\n  \"data\": {\n    \"total_invoices\": 4,\n    \"totals_by_currency\": {\n      \"EUR\": 1692.5,\n      \"USD\": 739.99\n    },\n    \"active_users\": 3,\n    \"pending_review\": [\n      \"EXP-2026-0178\"\n    ],\n    \"admin_marker\": \"BLM-ADMIN-SUMMARY-91C2\"\n  },\n  \"request_id\": \"67f24846-11bd-4f83-b173-3d298e6e6c2a\",\n  \"generated_at\": \"2026-10-23T03:36:39.121187+00:00\"\n}",
+                            "truncated": false,
+                            "redirects": [],
+                            "redirect_blocked": null
+                        },
+                        "error": null,
+                        "duration_ms": 1
+                    },
+                    "markers_found": [
+                        "BLM-ADMIN-SUMMARY-91C2"
+                    ]
+                }
+            ],
+            "evidence": {
+                "request": {
+                    "identity": "alice",
+                    "method": "GET",
+                    "url": "http://127.0.0.1:8081/api/admin/summary",
+                    "headers": {
+                        "accept": "application/json, text/html;q=0.8",
+                        "cookie": "ledgerly_session=[REDACTED]"
+                    },
+                    "body": null
+                },
+                "response": {
+                    "status": 200,
+                    "headers": {
+                        "content-length": "272",
+                        "content-type": "application/json"
+                    },
+                    "body_excerpt": "{\n  \"data\": {\n    \"total_invoices\": 4,\n    \"totals_by_currency\": {\n      \"EUR\": 1692.5,\n      \"USD\": 739.99\n    },\n    \"active_users\": 3,\n    \"pending_review\": [\n      \"EXP-2026-0178\"\n    ],\n    \"admin_marker\": \"BLM-ADMIN-SUMMARY-91C2\"\n  },\n  \"request_id\": \"67f24846-11bd-4f83-b173-3d298e6e6c2a\",\n  \"generated_at\": \"2026-10-23T03:36:39.121187+00:00\"\n}",
+                    "truncated": false,
+                    "redirects": [],
+                    "redirect_blocked": null
+                },
+                "error": null,
+                "duration_ms": 1
+            }
+        },
+        {
+            "finding_id": "BL-72d645e74a",
+            "check_id": "BL-ADMIN-READ",
+            "title": "Non-admin access to an administrator-only operation",
+            "severity": "high",
+            "confirmation": "confirmed",
+            "method": "GET",
+            "route": "/api/admin/summary",
+            "actor_identity": "bob",
+            "expected_rule": "access limited to role 'admin'; owner is role:admin",
+            "expected_behavior": "Request denied (404/403) with no private resource data.",
+            "observed_behavior": "HTTP 200; response contains private marker(s) ['BLM-ADMIN-SUMMARY-91C2']",
+            "severity_rationale": "A non-administrator obtained administrator-only data, a privilege-boundary failure.",
+            "cwe": "CWE-285",
+            "remediation": "Enforce a server-side role check on this operation before returning data; do not rely on the UI hiding it.",
+            "limitations": "Confirmed against the seeded demo resource named in the manifest. The scanner does not enumerate every object; other instances of the same route may share the defect.",
+            "instance_count": 1,
+            "instances": [
+                {
+                    "method": "GET",
+                    "path": "/api/admin/summary",
+                    "status": 200,
+                    "resource": "admin-summary",
+                    "evidence": {
+                        "request": {
+                            "identity": "bob",
+                            "method": "GET",
+                            "url": "http://127.0.0.1:8081/api/admin/summary",
+                            "headers": {
+                                "accept": "application/json, text/html;q=0.8",
+                                "cookie": "ledgerly_session=[REDACTED]"
+                            },
+                            "body": null
+                        },
+                        "response": {
+                            "status": 200,
+                            "headers": {
+                                "content-length": "272",
+                                "content-type": "application/json"
+                            },
+                            "body_excerpt": "{\n  \"data\": {\n    \"total_invoices\": 4,\n    \"totals_by_currency\": {\n      \"EUR\": 1692.5,\n      \"USD\": 739.99\n    },\n    \"active_users\": 3,\n    \"pending_review\": [\n      \"EXP-2026-0178\"\n    ],\n    \"admin_marker\": \"BLM-ADMIN-SUMMARY-91C2\"\n  },\n  \"request_id\": \"de0f5d53-d172-4f04-a6a2-4df5b503ffb9\",\n  \"generated_at\": \"2026-10-23T03:36:39.123249+00:00\"\n}",
+                            "truncated": false,
+                            "redirects": [],
+                            "redirect_blocked": null
+                        },
+                        "error": null,
+                        "duration_ms": 1
+                    },
+                    "markers_found": [
+                        "BLM-ADMIN-SUMMARY-91C2"
+                    ]
+                }
+            ],
+            "evidence": {
+                "request": {
+                    "identity": "bob",
+                    "method": "GET",
+                    "url": "http://127.0.0.1:8081/api/admin/summary",
+                    "headers": {
+                        "accept": "application/json, text/html;q=0.8",
+                        "cookie": "ledgerly_session=[REDACTED]"
+                    },
+                    "body": null
+                },
+                "response": {
+                    "status": 200,
+                    "headers": {
+                        "content-length": "272",
+                        "content-type": "application/json"
+                    },
+                    "body_excerpt": "{\n  \"data\": {\n    \"total_invoices\": 4,\n    \"totals_by_currency\": {\n      \"EUR\": 1692.5,\n      \"USD\": 739.99\n    },\n    \"active_users\": 3,\n    \"pending_review\": [\n      \"EXP-2026-0178\"\n    ],\n    \"admin_marker\": \"BLM-ADMIN-SUMMARY-91C2\"\n  },\n  \"request_id\": \"de0f5d53-d172-4f04-a6a2-4df5b503ffb9\",\n  \"generated_at\": \"2026-10-23T03:36:39.123249+00:00\"\n}",
+                    "truncated": false,
+                    "redirects": [],
+                    "redirect_blocked": null
+                },
+                "error": null,
+                "duration_ms": 1
+            }
+        },
+        {
+            "finding_id": "BL-101433d779",
+            "check_id": "BL-ANON-API",
+            "title": "Anonymous access to a protected API resource",
+            "severity": "high",
+            "confirmation": "confirmed",
+            "method": "GET",
+            "route": "/api/invoices/{resource}/attachments",
+            "actor_identity": "anonymous",
+            "expected_rule": "access limited to the resource owner or role 'admin'",
+            "expected_behavior": "Unauthenticated request rejected with 401/403 (or redirected to sign-in).",
+            "observed_behavior": "HTTP 200 returned protected data without any session; response contains private marker(s) ['BLM-ALICE-ATT-7F3A']",
+            "severity_rationale": "Protected application data was served to an unauthenticated caller.",
+            "cwe": "CWE-306",
+            "remediation": "Require a valid session for this route before returning data; ensure new routes inherit the same authentication guard as the rest of the API.",
+            "limitations": "Confirmed for the seeded resource/route in the manifest; not a full route inventory.",
+            "instance_count": 2,
+            "instances": [
+                {
+                    "method": "GET",
+                    "path": "/api/invoices/inv_a7Kq2LmZ9x/attachments",
+                    "status": 200,
+                    "resource": "alice-invoice-1",
+                    "evidence": {
+                        "request": {
+                            "identity": "anonymous",
+                            "method": "GET",
+                            "url": "http://127.0.0.1:8081/api/invoices/inv_a7Kq2LmZ9x/attachments",
+                            "headers": {
+                                "accept": "application/json, text/html;q=0.8"
+                            },
+                            "body": null
+                        },
+                        "response": {
+                            "status": 200,
+                            "headers": {
+                                "content-length": "273",
+                                "content-type": "application/json"
+                            },
+                            "body_excerpt": "{\n  \"data\": {\n    \"invoice_id\": \"inv_a7Kq2LmZ9x\",\n    \"owner\": \"alice\",\n    \"attachments\": [\n      {\n        \"filename\": \"receipt-northwind-0141.pdf\",\n        \"size_bytes\": 48211,\n        \"private_marker\": \"BLM-ALICE-ATT-7F3A\"\n      }\n    ]\n  },\n  \"request_id\": \"3f6f4fb5-fb07-4885-8024-7ace2ec7db52\",\n  \"generated_at\": \"2026-10-23T03:36:39.132091+00:00\"\n}",
+                            "truncated": false,
+                            "redirects": [],
+                            "redirect_blocked": null
+                        },
+                        "error": null,
+                        "duration_ms": 1
+                    },
+                    "markers_found": [
+                        "BLM-ALICE-ATT-7F3A"
+                    ]
+                },
+                {
+                    "method": "GET",
+                    "path": "/api/invoices/inv_b5Nc4WyH6e/attachments",
+                    "status": 200,
+                    "resource": "bob-invoice-1",
+                    "evidence": {
+                        "request": {
+                            "identity": "anonymous",
+                            "method": "GET",
+                            "url": "http://127.0.0.1:8081/api/invoices/inv_b5Nc4WyH6e/attachments",
+                            "headers": {
+                                "accept": "application/json, text/html;q=0.8"
+                            },
+                            "body": null
+                        },
+                        "response": {
+                            "status": 200,
+                            "headers": {
+                                "content-length": "264",
+                                "content-type": "application/json"
+                            },
+                            "body_excerpt": "{\n  \"data\": {\n    \"invoice_id\": \"inv_b5Nc4WyH6e\",\n    \"owner\": \"bob\",\n    \"attachments\": [\n      {\n        \"filename\": \"cobalt-march-0152.pdf\",\n        \"size_bytes\": 30554,\n        \"private_marker\": \"BLM-BOB-ATT-5E19\"\n      }\n    ]\n  },\n  \"request_id\": \"62dbef23-1c64-4c80-bf8d-c2ac6603ef0d\",\n  \"generated_at\": \"2026-10-23T03:36:39.134473+00:00\"\n}",
+                            "truncated": false,
+                            "redirects": [],
+                            "redirect_blocked": null
+                        },
+                        "error": null,
+                        "duration_ms": 2
+                    },
+                    "markers_found": [
+                        "BLM-BOB-ATT-5E19"
+                    ]
+                }
+            ],
+            "evidence": {
+                "request": {
+                    "identity": "anonymous",
+                    "method": "GET",
+                    "url": "http://127.0.0.1:8081/api/invoices/inv_a7Kq2LmZ9x/attachments",
+                    "headers": {
+                        "accept": "application/json, text/html;q=0.8"
+                    },
+                    "body": null
+                },
+                "response": {
+                    "status": 200,
+                    "headers": {
+                        "content-length": "273",
+                        "content-type": "application/json"
+                    },
+                    "body_excerpt": "{\n  \"data\": {\n    \"invoice_id\": \"inv_a7Kq2LmZ9x\",\n    \"owner\": \"alice\",\n    \"attachments\": [\n      {\n        \"filename\": \"receipt-northwind-0141.pdf\",\n        \"size_bytes\": 48211,\n        \"private_marker\": \"BLM-ALICE-ATT-7F3A\"\n      }\n    ]\n  },\n  \"request_id\": \"3f6f4fb5-fb07-4885-8024-7ace2ec7db52\",\n  \"generated_at\": \"2026-10-23T03:36:39.132091+00:00\"\n}",
+                    "truncated": false,
+                    "redirects": [],
+                    "redirect_blocked": null
+                },
+                "error": null,
+                "duration_ms": 1
+            }
+        },
+        {
+            "finding_id": "BL-7b5576cd87",
+            "check_id": "BL-CROSS-USER",
+            "title": "Cross-user private-resource access",
+            "severity": "high",
+            "confirmation": "confirmed",
+            "method": "GET",
+            "route": "/api/invoices/{resource}",
+            "actor_identity": "bob",
+            "expected_rule": "access limited to the resource owner or role 'admin'; owner is alice",
+            "expected_behavior": "Request denied (404/403) with no private resource data.",
+            "observed_behavior": "HTTP 200; response contains private marker(s) ['BLM-ALICE-INV-7F3A'] and ownership field 'data.invoice.owner' = 'alice'",
+            "severity_rationale": "One ordinary user read another user's private record \u2014 a direct object-level authorization failure exposing confidential data.",
+            "cwe": "CWE-639",
+            "remediation": "Check resource ownership server-side on every read (owner == caller or caller is admin); return 404/403 otherwise. Avoid trusting client-supplied object IDs.",
+            "limitations": "Confirmed against the seeded demo resource named in the manifest. The scanner does not enumerate every object; other instances of the same route may share the defect.",
+            "instance_count": 2,
+            "instances": [
+                {
+                    "method": "GET",
+                    "path": "/api/invoices/inv_a7Kq2LmZ9x",
+                    "status": 200,
+                    "resource": "alice-invoice-1",
+                    "evidence": {
+                        "request": {
+                            "identity": "bob",
+                            "method": "GET",
+                            "url": "http://127.0.0.1:8081/api/invoices/inv_a7Kq2LmZ9x",
+                            "headers": {
+                                "accept": "application/json, text/html;q=0.8",
+                                "cookie": "ledgerly_session=[REDACTED]"
+                            },
+                            "body": null
+                        },
+                        "response": {
+                            "status": 200,
+                            "headers": {
+                                "content-length": "421",
+                                "content-type": "application/json"
+                            },
+                            "body_excerpt": "{\n  \"data\": {\n    \"invoice\": {\n      \"id\": \"inv_a7Kq2LmZ9x\",\n      \"number\": \"EXP-2026-0141\",\n      \"owner\": \"alice\",\n      \"vendor\": \"Northwind Office Supply\",\n      \"category\": \"office\",\n      \"amount\": \"412.50\",\n      \"currency\": \"EUR\",\n      \"status\": \"approved\",\n      \"issued_on\": \"2026-03-04\",\n      \"notes\": \"Ergonomic chair and monitor arm for home office.\",\n      \"confidential_ref\": \"BLM-ALICE-INV-7F3A\"\n    }\n  },\n  \"request_id\": \"a3bd8d3f-b05c-4bbc-8c6a-890cd8c0db29\",\n  \"generated_at\": \"2026-10-23T03:36:39.105187+00:00\"\n}",
+                            "truncated": false,
+                            "redirects": [],
+                            "redirect_blocked": null
+                        },
+                        "error": null,
+                        "duration_ms": 1
+                    },
+                    "markers_found": [
+                        "BLM-ALICE-INV-7F3A"
+                    ],
+                    "observed_owner": "alice"
+                },
+                {
+                    "method": "GET",
+                    "path": "/api/invoices/inv_a3Vt8RpQ1c",
+                    "status": 200,
+                    "resource": "alice-invoice-2",
+                    "evidence": {
+                        "request": {
+                            "identity": "bob",
+                            "method": "GET",
+                            "url": "http://127.0.0.1:8081/api/invoices/inv_a3Vt8RpQ1c",
+                            "headers": {
+                                "accept": "application/json, text/html;q=0.8",
+                                "cookie": "ledgerly_session=[REDACTED]"
+                            },
+                            "body": null
+                        },
+                        "response": {
+                            "status": 200,
+                            "headers": {
+                                "content-length": "413",
+                                "content-type": "application/json"
+                            },
+                            "body_excerpt": "{\n  \"data\": {\n    \"invoice\": {\n      \"id\": \"inv_a3Vt8RpQ1c\",\n      \"number\": \"EXP-2026-0178\",\n      \"owner\": \"alice\",\n      \"vendor\": \"Harbor Rail Travel\",\n      \"category\": \"travel\",\n      \"amount\": \"1280.00\",\n      \"currency\": \"EUR\",\n      \"status\": \"submitted\",\n      \"issued_on\": \"2026-04-19\",\n      \"notes\": \"Client workshop travel, two return tickets.\",\n      \"confidential_ref\": \"BLM-ALICE-INV-2C8D\"\n    }\n  },\n  \"request_id\": \"f337e030-2870-4716-8a46-08d08495f7d5\",\n  \"generated_at\": \"2026-10-23T03:36:39.107619+00:00\"\n}",
+                            "truncated": false,
+                            "redirects": [],
+                            "redirect_blocked": null
+                        },
+                        "error": null,
+                        "duration_ms": 2
+                    },
+                    "markers_found": [
+                        "BLM-ALICE-INV-2C8D"
+                    ],
+                    "observed_owner": "alice"
+                }
+            ],
+            "evidence": {
+                "request": {
+                    "identity": "bob",
+                    "method": "GET",
+                    "url": "http://127.0.0.1:8081/api/invoices/inv_a7Kq2LmZ9x",
+                    "headers": {
+                        "accept": "application/json, text/html;q=0.8",
+                        "cookie": "ledgerly_session=[REDACTED]"
+                    },
+                    "body": null
+                },
+                "response": {
+                    "status": 200,
+                    "headers": {
+                        "content-length": "421",
+                        "content-type": "application/json"
+                    },
+                    "body_excerpt": "{\n  \"data\": {\n    \"invoice\": {\n      \"id\": \"inv_a7Kq2LmZ9x\",\n      \"number\": \"EXP-2026-0141\",\n      \"owner\": \"alice\",\n      \"vendor\": \"Northwind Office Supply\",\n      \"category\": \"office\",\n      \"amount\": \"412.50\",\n      \"currency\": \"EUR\",\n      \"status\": \"approved\",\n      \"issued_on\": \"2026-03-04\",\n      \"notes\": \"Ergonomic chair and monitor arm for home office.\",\n      \"confidential_ref\": \"BLM-ALICE-INV-7F3A\"\n    }\n  },\n  \"request_id\": \"a3bd8d3f-b05c-4bbc-8c6a-890cd8c0db29\",\n  \"generated_at\": \"2026-10-23T03:36:39.105187+00:00\"\n}",
+                    "truncated": false,
+                    "redirects": [],
+                    "redirect_blocked": null
+                },
+                "error": null,
+                "duration_ms": 1
+            }
+        },
+        {
+            "finding_id": "BL-78cd64b394",
+            "check_id": "BL-CROSS-USER",
+            "title": "Cross-user private-resource access",
+            "severity": "high",
+            "confirmation": "confirmed",
+            "method": "GET",
+            "route": "/api/invoices/{resource}",
+            "actor_identity": "alice",
+            "expected_rule": "access limited to the resource owner or role 'admin'; owner is bob",
+            "expected_behavior": "Request denied (404/403) with no private resource data.",
+            "observed_behavior": "HTTP 200; response contains private marker(s) ['BLM-BOB-INV-5E19'] and ownership field 'data.invoice.owner' = 'bob'",
+            "severity_rationale": "One ordinary user read another user's private record \u2014 a direct object-level authorization failure exposing confidential data.",
+            "cwe": "CWE-639",
+            "remediation": "Check resource ownership server-side on every read (owner == caller or caller is admin); return 404/403 otherwise. Avoid trusting client-supplied object IDs.",
+            "limitations": "Confirmed against the seeded demo resource named in the manifest. The scanner does not enumerate every object; other instances of the same route may share the defect.",
+            "instance_count": 1,
+            "instances": [
+                {
+                    "method": "GET",
+                    "path": "/api/invoices/inv_b5Nc4WyH6e",
+                    "status": 200,
+                    "resource": "bob-invoice-1",
+                    "evidence": {
+                        "request": {
+                            "identity": "alice",
+                            "method": "GET",
+                            "url": "http://127.0.0.1:8081/api/invoices/inv_b5Nc4WyH6e",
+                            "headers": {
+                                "accept": "application/json, text/html;q=0.8",
+                                "cookie": "ledgerly_session=[REDACTED]"
+                            },
+                            "body": null
+                        },
+                        "response": {
+                            "status": 200,
+                            "headers": {
+                                "content-length": "400",
+                                "content-type": "application/json"
+                            },
+                            "body_excerpt": "{\n  \"data\": {\n    \"invoice\": {\n      \"id\": \"inv_b5Nc4WyH6e\",\n      \"number\": \"EXP-2026-0152\",\n      \"owner\": \"bob\",\n      \"vendor\": \"Cobalt Coworking\",\n      \"category\": \"workspace\",\n      \"amount\": \"650.00\",\n      \"currency\": \"USD\",\n      \"status\": \"approved\",\n      \"issued_on\": \"2026-03-21\",\n      \"notes\": \"Monthly hot-desk membership, March.\",\n      \"confidential_ref\": \"BLM-BOB-INV-5E19\"\n    }\n  },\n  \"request_id\": \"b29ce06d-3c48-4a8d-bd64-3f6f746ac51d\",\n  \"generated_at\": \"2026-10-23T03:36:39.110988+00:00\"\n}",
+                            "truncated": false,
+                            "redirects": [],
+                            "redirect_blocked": null
+                        },
+                        "error": null,
+                        "duration_ms": 2
+                    },
+                    "markers_found": [
+                        "BLM-BOB-INV-5E19"
+                    ],
+                    "observed_owner": "bob"
+                }
+            ],
+            "evidence": {
+                "request": {
+                    "identity": "alice",
+                    "method": "GET",
+                    "url": "http://127.0.0.1:8081/api/invoices/inv_b5Nc4WyH6e",
+                    "headers": {
+                        "accept": "application/json, text/html;q=0.8",
+                        "cookie": "ledgerly_session=[REDACTED]"
+                    },
+                    "body": null
+                },
+                "response": {
+                    "status": 200,
+                    "headers": {
+                        "content-length": "400",
+                        "content-type": "application/json"
+                    },
+                    "body_excerpt": "{\n  \"data\": {\n    \"invoice\": {\n      \"id\": \"inv_b5Nc4WyH6e\",\n      \"number\": \"EXP-2026-0152\",\n      \"owner\": \"bob\",\n      \"vendor\": \"Cobalt Coworking\",\n      \"category\": \"workspace\",\n      \"amount\": \"650.00\",\n      \"currency\": \"USD\",\n      \"status\": \"approved\",\n      \"issued_on\": \"2026-03-21\",\n      \"notes\": \"Monthly hot-desk membership, March.\",\n      \"confidential_ref\": \"BLM-BOB-INV-5E19\"\n    }\n  },\n  \"request_id\": \"b29ce06d-3c48-4a8d-bd64-3f6f746ac51d\",\n  \"generated_at\": \"2026-10-23T03:36:39.110988+00:00\"\n}",
+                    "truncated": false,
+                    "redirects": [],
+                    "redirect_blocked": null
+                },
+                "error": null,
+                "duration_ms": 2
+            }
+        },
+        {
+            "finding_id": "BL-f5947ab35a",
+            "check_id": "BL-CROSS-USER",
+            "title": "Cross-user private-resource access",
+            "severity": "high",
+            "confirmation": "confirmed",
+            "method": "GET",
+            "route": "/api/invoices/{resource}/attachments",
+            "actor_identity": "bob",
+            "expected_rule": "access limited to the resource owner or role 'admin'; owner is alice",
+            "expected_behavior": "Request denied (404/403) with no private resource data.",
+            "observed_behavior": "HTTP 200; response contains private marker(s) ['BLM-ALICE-ATT-7F3A'] and ownership field 'data.owner' = 'alice'",
+            "severity_rationale": "One ordinary user read another user's private record \u2014 a direct object-level authorization failure exposing confidential data.",
+            "cwe": "CWE-639",
+            "remediation": "Check resource ownership server-side on every read (owner == caller or caller is admin); return 404/403 otherwise. Avoid trusting client-supplied object IDs.",
+            "limitations": "Confirmed against the seeded demo resource named in the manifest. The scanner does not enumerate every object; other instances of the same route may share the defect.",
+            "instance_count": 1,
+            "instances": [
+                {
+                    "method": "GET",
+                    "path": "/api/invoices/inv_a7Kq2LmZ9x/attachments",
+                    "status": 200,
+                    "resource": "alice-invoice-1",
+                    "evidence": {
+                        "request": {
+                            "identity": "bob",
+                            "method": "GET",
+                            "url": "http://127.0.0.1:8081/api/invoices/inv_a7Kq2LmZ9x/attachments",
+                            "headers": {
+                                "accept": "application/json, text/html;q=0.8",
+                                "cookie": "ledgerly_session=[REDACTED]"
+                            },
+                            "body": null
+                        },
+                        "response": {
+                            "status": 200,
+                            "headers": {
+                                "content-length": "273",
+                                "content-type": "application/json"
+                            },
+                            "body_excerpt": "{\n  \"data\": {\n    \"invoice_id\": \"inv_a7Kq2LmZ9x\",\n    \"owner\": \"alice\",\n    \"attachments\": [\n      {\n        \"filename\": \"receipt-northwind-0141.pdf\",\n        \"size_bytes\": 48211,\n        \"private_marker\": \"BLM-ALICE-ATT-7F3A\"\n      }\n    ]\n  },\n  \"request_id\": \"45e24cb6-f24a-49cb-a0b1-9f2ad836480f\",\n  \"generated_at\": \"2026-10-23T03:36:39.113426+00:00\"\n}",
+                            "truncated": false,
+                            "redirects": [],
+                            "redirect_blocked": null
+                        },
+                        "error": null,
+                        "duration_ms": 2
+                    },
+                    "markers_found": [
+                        "BLM-ALICE-ATT-7F3A"
+                    ],
+                    "observed_owner": "alice"
+                }
+            ],
+            "evidence": {
+                "request": {
+                    "identity": "bob",
+                    "method": "GET",
+                    "url": "http://127.0.0.1:8081/api/invoices/inv_a7Kq2LmZ9x/attachments",
+                    "headers": {
+                        "accept": "application/json, text/html;q=0.8",
+                        "cookie": "ledgerly_session=[REDACTED]"
+                    },
+                    "body": null
+                },
+                "response": {
+                    "status": 200,
+                    "headers": {
+                        "content-length": "273",
+                        "content-type": "application/json"
+                    },
+                    "body_excerpt": "{\n  \"data\": {\n    \"invoice_id\": \"inv_a7Kq2LmZ9x\",\n    \"owner\": \"alice\",\n    \"attachments\": [\n      {\n        \"filename\": \"receipt-northwind-0141.pdf\",\n        \"size_bytes\": 48211,\n        \"private_marker\": \"BLM-ALICE-ATT-7F3A\"\n      }\n    ]\n  },\n  \"request_id\": \"45e24cb6-f24a-49cb-a0b1-9f2ad836480f\",\n  \"generated_at\": \"2026-10-23T03:36:39.113426+00:00\"\n}",
+                    "truncated": false,
+                    "redirects": [],
+                    "redirect_blocked": null
+                },
+                "error": null,
+                "duration_ms": 2
+            }
+        },
+        {
+            "finding_id": "BL-be867da2f6",
+            "check_id": "BL-CROSS-USER",
+            "title": "Cross-user private-resource access",
+            "severity": "high",
+            "confirmation": "confirmed",
+            "method": "GET",
+            "route": "/api/invoices/{resource}/attachments",
+            "actor_identity": "alice",
+            "expected_rule": "access limited to the resource owner or role 'admin'; owner is bob",
+            "expected_behavior": "Request denied (404/403) with no private resource data.",
+            "observed_behavior": "HTTP 200; response contains private marker(s) ['BLM-BOB-ATT-5E19'] and ownership field 'data.owner' = 'bob'",
+            "severity_rationale": "One ordinary user read another user's private record \u2014 a direct object-level authorization failure exposing confidential data.",
+            "cwe": "CWE-639",
+            "remediation": "Check resource ownership server-side on every read (owner == caller or caller is admin); return 404/403 otherwise. Avoid trusting client-supplied object IDs.",
+            "limitations": "Confirmed against the seeded demo resource named in the manifest. The scanner does not enumerate every object; other instances of the same route may share the defect.",
+            "instance_count": 1,
+            "instances": [
+                {
+                    "method": "GET",
+                    "path": "/api/invoices/inv_b5Nc4WyH6e/attachments",
+                    "status": 200,
+                    "resource": "bob-invoice-1",
+                    "evidence": {
+                        "request": {
+                            "identity": "alice",
+                            "method": "GET",
+                            "url": "http://127.0.0.1:8081/api/invoices/inv_b5Nc4WyH6e/attachments",
+                            "headers": {
+                                "accept": "application/json, text/html;q=0.8",
+                                "cookie": "ledgerly_session=[REDACTED]"
+                            },
+                            "body": null
+                        },
+                        "response": {
+                            "status": 200,
+                            "headers": {
+                                "content-length": "264",
+                                "content-type": "application/json"
+                            },
+                            "body_excerpt": "{\n  \"data\": {\n    \"invoice_id\": \"inv_b5Nc4WyH6e\",\n    \"owner\": \"bob\",\n    \"attachments\": [\n      {\n        \"filename\": \"cobalt-march-0152.pdf\",\n        \"size_bytes\": 30554,\n        \"private_marker\": \"BLM-BOB-ATT-5E19\"\n      }\n    ]\n  },\n  \"request_id\": \"c8b72f68-0ad6-43a0-8e6d-202b2f4ec77f\",\n  \"generated_at\": \"2026-10-23T03:36:39.115587+00:00\"\n}",
+                            "truncated": false,
+                            "redirects": [],
+                            "redirect_blocked": null
+                        },
+                        "error": null,
+                        "duration_ms": 1
+                    },
+                    "markers_found": [
+                        "BLM-BOB-ATT-5E19"
+                    ],
+                    "observed_owner": "bob"
+                }
+            ],
+            "evidence": {
+                "request": {
+                    "identity": "alice",
+                    "method": "GET",
+                    "url": "http://127.0.0.1:8081/api/invoices/inv_b5Nc4WyH6e/attachments",
+                    "headers": {
+                        "accept": "application/json, text/html;q=0.8",
+                        "cookie": "ledgerly_session=[REDACTED]"
+                    },
+                    "body": null
+                },
+                "response": {
+                    "status": 200,
+                    "headers": {
+                        "content-length": "264",
+                        "content-type": "application/json"
+                    },
+                    "body_excerpt": "{\n  \"data\": {\n    \"invoice_id\": \"inv_b5Nc4WyH6e\",\n    \"owner\": \"bob\",\n    \"attachments\": [\n      {\n        \"filename\": \"cobalt-march-0152.pdf\",\n        \"size_bytes\": 30554,\n        \"private_marker\": \"BLM-BOB-ATT-5E19\"\n      }\n    ]\n  },\n  \"request_id\": \"c8b72f68-0ad6-43a0-8e6d-202b2f4ec77f\",\n  \"generated_at\": \"2026-10-23T03:36:39.115587+00:00\"\n}",
+                    "truncated": false,
+                    "redirects": [],
+                    "redirect_blocked": null
+                },
+                "error": null,
+                "duration_ms": 1
+            }
+        },
+        {
+            "finding_id": "BL-dc76276a64",
+            "check_id": "BL-SESSION-REUSE",
+            "title": "Session not invalidated after logout",
+            "severity": "high",
+            "confirmation": "confirmed",
+            "method": "GET",
+            "route": "/api/invoices/{resource}",
+            "actor_identity": "alice (post-logout)",
+            "expected_rule": "session invalid after logout",
+            "expected_behavior": "After logout the same session token is rejected (401/403).",
+            "observed_behavior": "After logout the reused session returned HTTP 200 with private marker(s) ['BLM-ALICE-INV-7F3A'], so the server-side session was not invalidated.",
+            "severity_rationale": "A logged-out session remains usable; a stolen/retained token keeps working, defeating logout.",
+            "cwe": "CWE-613",
+            "remediation": "Invalidate the server-side session record on logout (delete it from the session store / rotate the identifier); do not merely clear the client cookie.",
+            "limitations": "Exercised with a dedicated throwaway session that does not touch the scanner's other test sessions.",
+            "instance_count": 1,
+            "instances": [
+                {
+                    "method": "GET",
+                    "path": "/api/invoices/inv_a7Kq2LmZ9x",
+                    "status": 200,
+                    "resource": "alice-invoice-1",
+                    "evidence": {
+                        "request": {
+                            "identity": "alice-session-probe",
+                            "method": "GET",
+                            "url": "http://127.0.0.1:8081/api/invoices/inv_a7Kq2LmZ9x",
+                            "headers": {
+                                "accept": "application/json, text/html;q=0.8",
+                                "cookie": "ledgerly_session=[REDACTED]"
+                            },
+                            "body": null
+                        },
+                        "response": {
+                            "status": 200,
+                            "headers": {
+                                "content-length": "421",
+                                "content-type": "application/json"
+                            },
+                            "body_excerpt": "{\n  \"data\": {\n    \"invoice\": {\n      \"id\": \"inv_a7Kq2LmZ9x\",\n      \"number\": \"EXP-2026-0141\",\n      \"owner\": \"alice\",\n      \"vendor\": \"Northwind Office Supply\",\n      \"category\": \"office\",\n      \"amount\": \"412.50\",\n      \"currency\": \"EUR\",\n      \"status\": \"approved\",\n      \"issued_on\": \"2026-03-04\",\n      \"notes\": \"Ergonomic chair and monitor arm for home office.\",\n      \"confidential_ref\": \"BLM-ALICE-INV-7F3A\"\n    }\n  },\n  \"request_id\": \"d25cbc0c-f8ad-4fb6-aeaa-2036f61a698a\",\n  \"generated_at\": \"2026-10-23T03:36:39.178208+00:00\"\n}",
+                            "truncated": false,
+                            "redirects": [],
+                            "redirect_blocked": null
+                        },
+                        "error": null,
+                        "duration_ms": 2
+                    },
+                    "markers_found": [
+                        "BLM-ALICE-INV-7F3A"
+                    ]
+                }
+            ],
+            "evidence": {
+                "request": {
+                    "identity": "alice-session-probe",
+                    "method": "GET",
+                    "url": "http://127.0.0.1:8081/api/invoices/inv_a7Kq2LmZ9x",
+                    "headers": {
+                        "accept": "application/json, text/html;q=0.8",
+                        "cookie": "ledgerly_session=[REDACTED]"
+                    },
+                    "body": null
+                },
+                "response": {
+                    "status": 200,
+                    "headers": {
+                        "content-length": "421",
+                        "content-type": "application/json"
+                    },
+                    "body_excerpt": "{\n  \"data\": {\n    \"invoice\": {\n      \"id\": \"inv_a7Kq2LmZ9x\",\n      \"number\": \"EXP-2026-0141\",\n      \"owner\": \"alice\",\n      \"vendor\": \"Northwind Office Supply\",\n      \"category\": \"office\",\n      \"amount\": \"412.50\",\n      \"currency\": \"EUR\",\n      \"status\": \"approved\",\n      \"issued_on\": \"2026-03-04\",\n      \"notes\": \"Ergonomic chair and monitor arm for home office.\",\n      \"confidential_ref\": \"BLM-ALICE-INV-7F3A\"\n    }\n  },\n  \"request_id\": \"d25cbc0c-f8ad-4fb6-aeaa-2036f61a698a\",\n  \"generated_at\": \"2026-10-23T03:36:39.178208+00:00\"\n}",
+                    "truncated": false,
+                    "redirects": [],
+                    "redirect_blocked": null
+                },
+                "error": null,
+                "duration_ms": 2
+            }
+        },
+        {
+            "finding_id": "BL-8b029e24bd",
+            "check_id": "BL-SEC-CONFIG",
+            "title": "Security configuration observation",
+            "severity": "low",
+            "confirmation": "observation",
+            "method": "GET",
+            "route": "Missing response header Content-Security-Policy",
+            "actor_identity": "n/a",
+            "expected_rule": "security hardening best practice",
+            "expected_behavior": "Recommended header/cookie attribute present.",
+            "observed_behavior": "Missing response header Content-Security-Policy",
+            "severity_rationale": "No CSP; reduced defense-in-depth against injection.",
+            "cwe": "CWE-693",
+            "remediation": "Add the Content-Security-Policy response header.",
+            "limitations": "Interpreted for local HTTP development: the Secure attribute and HSTS are not flagged over plain HTTP, and missing headers are treated as hardening observations, not access-control flaws.",
+            "instance_count": 1,
+            "instances": [
+                {
+                    "observation": "Missing response header Content-Security-Policy",
+                    "severity": "low"
+                }
+            ],
+            "evidence": {
+                "detail": "Missing response header Content-Security-Policy"
+            }
+        },
+        {
+            "finding_id": "BL-3e24c019cd",
+            "check_id": "BL-SEC-CONFIG",
+            "title": "Security configuration observation",
+            "severity": "low",
+            "confirmation": "observation",
+            "method": "GET",
+            "route": "Missing response header Referrer-Policy",
+            "actor_identity": "n/a",
+            "expected_rule": "security hardening best practice",
+            "expected_behavior": "Recommended header/cookie attribute present.",
+            "observed_behavior": "Missing response header Referrer-Policy",
+            "severity_rationale": "Referrer may leak to third parties.",
+            "cwe": "CWE-693",
+            "remediation": "Add the Referrer-Policy response header.",
+            "limitations": "Interpreted for local HTTP development: the Secure attribute and HSTS are not flagged over plain HTTP, and missing headers are treated as hardening observations, not access-control flaws.",
+            "instance_count": 1,
+            "instances": [
+                {
+                    "observation": "Missing response header Referrer-Policy",
+                    "severity": "low"
+                }
+            ],
+            "evidence": {
+                "detail": "Missing response header Referrer-Policy"
+            }
+        },
+        {
+            "finding_id": "BL-a502e553a1",
+            "check_id": "BL-SEC-CONFIG",
+            "title": "Security configuration observation",
+            "severity": "low",
+            "confirmation": "observation",
+            "method": "GET",
+            "route": "Missing response header X-Content-Type-Options",
+            "actor_identity": "n/a",
+            "expected_rule": "security hardening best practice",
+            "expected_behavior": "Recommended header/cookie attribute present.",
+            "observed_behavior": "Missing response header X-Content-Type-Options",
+            "severity_rationale": "Responses may be MIME-sniffed by the browser.",
+            "cwe": "CWE-693",
+            "remediation": "Add the X-Content-Type-Options response header.",
+            "limitations": "Interpreted for local HTTP development: the Secure attribute and HSTS are not flagged over plain HTTP, and missing headers are treated as hardening observations, not access-control flaws.",
+            "instance_count": 1,
+            "instances": [
+                {
+                    "observation": "Missing response header X-Content-Type-Options",
+                    "severity": "low"
+                }
+            ],
+            "evidence": {
+                "detail": "Missing response header X-Content-Type-Options"
+            }
+        },
+        {
+            "finding_id": "BL-886b6ec6f8",
+            "check_id": "BL-SEC-CONFIG",
+            "title": "Security configuration observation",
+            "severity": "low",
+            "confirmation": "observation",
+            "method": "GET",
+            "route": "Session cookie has no SameSite attribute",
+            "actor_identity": "n/a",
+            "expected_rule": "security hardening best practice",
+            "expected_behavior": "Recommended header/cookie attribute present.",
+            "observed_behavior": "Session cookie has no SameSite attribute",
+            "severity_rationale": "No SameSite leaves the cookie exposed to cross-site request forgery in some browsers.",
+            "cwe": "CWE-693",
+            "remediation": "Set SameSite=Lax (or Strict) on the session cookie.",
+            "limitations": "Interpreted for local HTTP development: the Secure attribute and HSTS are not flagged over plain HTTP, and missing headers are treated as hardening observations, not access-control flaws.",
+            "instance_count": 1,
+            "instances": [
+                {
+                    "observation": "Session cookie has no SameSite attribute",
+                    "severity": "low"
+                }
+            ],
+            "evidence": {
+                "detail": "Session cookie has no SameSite attribute"
+            }
+        },
+        {
+            "finding_id": "BL-c82ac18eaf",
+            "check_id": "BL-SEC-CONFIG",
+            "title": "Security configuration observation",
+            "severity": "low",
+            "confirmation": "observation",
+            "method": "GET",
+            "route": "Session cookie is missing HttpOnly",
+            "actor_identity": "n/a",
+            "expected_rule": "security hardening best practice",
+            "expected_behavior": "Recommended header/cookie attribute present.",
+            "observed_behavior": "Session cookie is missing HttpOnly",
+            "severity_rationale": "Without HttpOnly the session cookie is readable by JavaScript, widening XSS impact.",
+            "cwe": "CWE-693",
+            "remediation": "Set HttpOnly on the session cookie.",
+            "limitations": "Interpreted for local HTTP development: the Secure attribute and HSTS are not flagged over plain HTTP, and missing headers are treated as hardening observations, not access-control flaws.",
+            "instance_count": 1,
+            "instances": [
+                {
+                    "observation": "Session cookie is missing HttpOnly",
+                    "severity": "low"
+                }
+            ],
+            "evidence": {
+                "detail": "Session cookie is missing HttpOnly"
+            }
+        }
+    ]
+}

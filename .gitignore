@@ -1,0 +1,27 @@
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+*.egg-info/
+.pytest_cache/
+
+# Node / frontend build
+node_modules/
+frontend/dist/
+
+# Scanner database and runtime
+*.db
+.run/
+.env
+
+# OS / editor
+.DS_Store
+*.swp
+
+# TS build info
+frontend/tsconfig.tsbuildinfo
+
+# Platform artifacts
+baseline.json
+*.sarif
+boundarylens.sarif

@@ -1,0 +1,54 @@
+# BoundaryLens — one-command local stack.
+#   docker compose up --build
+# Dashboard: http://127.0.0.1:8080  (bound to localhost only)
+#
+# Two demo configurations run as separate services. The scanner reaches them by
+# their Docker service names, which are permitted explicitly via BL_ALLOWED_HOSTS
+# (loopback is always allowed; any other host must be listed).
+
+services:
+  demo-vulnerable:
+    build:
+      context: ./demo_app
+    environment:
+      LEDGERLY_MODE: vulnerable
+      LEDGERLY_ALICE_PASSWORD: ${BL_ALICE_PASSWORD:-alice-local-demo}
+      LEDGERLY_BOB_PASSWORD: ${BL_BOB_PASSWORD:-bob-local-demo}
+      LEDGERLY_ADMIN_PASSWORD: ${BL_ADMIN_PASSWORD:-admin-local-demo}
+    expose:
+      - "8000"
+
+  demo-fixed:
+    build:
+      context: ./demo_app
+    environment:
+      LEDGERLY_MODE: fixed
+      LEDGERLY_ALICE_PASSWORD: ${BL_ALICE_PASSWORD:-alice-local-demo}
+      LEDGERLY_BOB_PASSWORD: ${BL_BOB_PASSWORD:-bob-local-demo}
+      LEDGERLY_ADMIN_PASSWORD: ${BL_ADMIN_PASSWORD:-admin-local-demo}
+    expose:
+      - "8000"
+
+  scanner:
+    build:
+      context: .
+      dockerfile: scanner/Dockerfile
+    depends_on:
+      - demo-vulnerable
+      - demo-fixed
+    environment:
+      BL_ALICE_PASSWORD: ${BL_ALICE_PASSWORD:-alice-local-demo}
+      BL_BOB_PASSWORD: ${BL_BOB_PASSWORD:-bob-local-demo}
+      BL_ADMIN_PASSWORD: ${BL_ADMIN_PASSWORD:-admin-local-demo}
+      BL_DEMO_VULNERABLE_ORIGIN: http://demo-vulnerable:8000
+      BL_DEMO_FIXED_ORIGIN: http://demo-fixed:8000
+      BL_ALLOWED_HOSTS: demo-vulnerable,demo-fixed
+      BL_REQUIRE_ACK: "true"
+    ports:
+      # Bind the dashboard to localhost only.
+      - "127.0.0.1:8080:8080"
+    volumes:
+      - scan-data:/data
+
+volumes:
+  scan-data:

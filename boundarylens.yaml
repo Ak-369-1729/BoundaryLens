@@ -1,0 +1,61 @@
+# BoundaryLens automated authorization scan configuration.
+# Secrets are never stored here — identities reference environment-variable NAMES only.
+# Run:  python -m boundarylens.cli scan --config boundarylens.yaml --fail-on high
+
+target:
+  base_url: ${BL_TARGET_ORIGIN:-http://127.0.0.1:8081}   # the vulnerable demo by default
+  health_path: /api/public/status
+
+auth:                      # used by identities with kind: login
+  login_path: /api/auth/login
+  username_field: username
+  password_field: password
+  session_cookie: ledgerly_session
+  verify_path: /api/me
+  login_page_markers: ['type="password"']
+
+discovery:
+  openapi: ./examples/ledgerly-openapi.json
+  # openapi_url: http://127.0.0.1:8081/openapi.json
+  # postman: ./examples/ledgerly.postman_collection.json
+  # har: ./examples/ledgerly-traffic.har
+
+identities:
+  anonymous:
+    role: anonymous
+    kind: anonymous
+  alice:
+    role: user
+    kind: login
+    username: alice
+    password_env: BL_ALICE_PASSWORD
+  bob:
+    role: user
+    kind: login
+    username: bob
+    password_env: BL_BOB_PASSWORD
+  admin:
+    role: admin
+    kind: login
+    username: admin
+    password_env: BL_ADMIN_PASSWORD
+
+scan:
+  request_budget: 300
+  concurrency: 4
+  timeout_seconds: 5
+  max_response_bytes: 262144
+  safe_methods: [GET, HEAD]
+  allow_mutation: false            # mutating methods are never executed unless this is true
+  max_tests: 200
+  confidence_threshold: 60
+
+report:
+  sarif: ./boundarylens.sarif
+
+regression:
+  baseline: ./baseline.json
+  fail_on: high
+
+scope:
+  allowed_hosts: []                # non-loopback target hosts must be listed explicitly

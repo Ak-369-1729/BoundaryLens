@@ -1,0 +1,11 @@
+{
+  "info": { "name": "Ledgerly", "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json" },
+  "item": [
+    { "name": "Login", "request": { "method": "POST", "url": { "raw": "{{base}}/api/auth/login", "path": ["api","auth","login"] },
+      "body": { "mode": "raw", "raw": "{\"username\":\"alice\",\"password\":\"{{password}}\"}" } } },
+    { "name": "List invoices", "request": { "method": "GET", "url": { "raw": "{{base}}/api/invoices", "path": ["api","invoices"] },
+      "header": [{ "key": "Cookie", "value": "ledgerly_session={{session}}" }] } },
+    { "name": "Get invoice", "request": { "method": "GET", "url": { "raw": "{{base}}/api/invoices/{{invoiceId}}", "path": ["api","invoices","{{invoiceId}}"] } } },
+    { "name": "Admin summary", "request": { "method": "GET", "url": { "raw": "{{base}}/api/admin/summary", "path": ["api","admin","summary"] } } }
+  ]
+}

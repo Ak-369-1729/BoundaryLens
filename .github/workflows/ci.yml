@@ -1,0 +1,80 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+env:
+  BL_ALICE_PASSWORD: alice-local-demo
+  BL_BOB_PASSWORD: bob-local-demo
+  BL_ADMIN_PASSWORD: admin-local-demo
+  LEDGERLY_ALICE_PASSWORD: alice-local-demo
+  LEDGERLY_BOB_PASSWORD: bob-local-demo
+  LEDGERLY_ADMIN_PASSWORD: admin-local-demo
+
+jobs:
+  backend:
+    name: Backend tests (scanner + platform + real demo)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install -r scanner/requirements.txt pytest==9.1.1
+      - name: Run tests (includes autoscan integration vs vulnerable and fixed)
+        run: PYTHONPATH="$PWD/scanner:$PWD/demo_app" python -m pytest tests -q
+
+  frontend:
+    name: Frontend production build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Install and build
+        working-directory: frontend
+        run: |
+          npm install
+          npm run build
+
+  authorization-regression-gate:
+    name: Authorization regression gate (demo)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install -r scanner/requirements.txt
+      - name: Start the FIXED demo as the target
+        run: |
+          PYTHONPATH="$PWD/demo_app" LEDGERLY_MODE=fixed \
+            python -m uvicorn ledgerly.app:create_app --factory --host 127.0.0.1 --port 8081 &
+          for i in $(seq 1 20); do curl -sf http://127.0.0.1:8081/api/public/status && break; sleep 0.5; done
+      - name: Create a baseline from the clean (fixed) target
+        run: |
+          PYTHONPATH="$PWD/scanner" BL_TARGET_ORIGIN=http://127.0.0.1:8081 \
+            python -m boundarylens.cli scan --config boundarylens.yaml \
+            --create-baseline baseline.json --baseline-name ci-clean
+      - name: Gate — scan the fixed target against the baseline (must pass, exit 0)
+        run: |
+          PYTHONPATH="$PWD/scanner" BL_TARGET_ORIGIN=http://127.0.0.1:8081 \
+            python -m boundarylens.cli scan --config boundarylens.yaml \
+            --baseline baseline.json --fail-on high \
+            --report sarif --out boundarylens.sarif
+      - name: Upload SARIF to GitHub code scanning
+        if: always()
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: boundarylens.sarif
+        continue-on-error: true
+
+  compose:
+    name: Validate Docker Compose
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: docker compose config -q

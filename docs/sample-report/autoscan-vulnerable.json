@@ -1,0 +1,1031 @@
+{
+    "report_type": "boundarylens.scan-report",
+    "schema_version": 1,
+    "generated_at": "2026-10-23T03:36:38.886794+00:00",
+    "scope": {
+        "manifest": "Ledgerly local demo",
+        "authorization_statement": "Ledgerly is a fictional application shipped with BoundaryLens and started on this machine. The operator owns it and may test it.",
+        "note": "Authorized scan of a developer-owned target. Findings and evidence are sanitized: no passwords, session tokens or authorization headers are included."
+    },
+    "target": {
+        "id": "ledgerly-vulnerable",
+        "configuration": "vulnerable",
+        "origin": "http://127.0.0.1:8081"
+    },
+    "scan": {
+        "id": "3afe7a61-f0f6-4b66-b828-59be1cc5af3c",
+        "status": "completed",
+        "created_at": "2026-10-23T03:32:56.641915",
+        "started_at": "2026-10-23T03:32:56.666091",
+        "finished_at": "2026-10-23T03:32:57.106780",
+        "requests_sent": 56,
+        "request_budget": 150,
+        "limits": {
+            "concurrency": 4,
+            "timeout_seconds": 5.0,
+            "max_response_bytes": 262144,
+            "safe_methods": [
+                "GET",
+                "HEAD"
+            ],
+            "allow_mutation": false,
+            "confidence_threshold": 60
+        },
+        "error": null
+    },
+    "checks_executed": [
+        {
+            "check_id": "BL-AUTO-BOLA",
+            "title": "Broken Object Level Authorization",
+            "coverage": "assessed"
+        },
+        {
+            "check_id": "BL-AUTO-BFLA",
+            "title": "Broken Function Level Authorization",
+            "coverage": "assessed"
+        },
+        {
+            "check_id": "BL-AUTO-ANON",
+            "title": "Unauthenticated access to a protected resource",
+            "coverage": "assessed"
+        }
+    ],
+    "severity_counts": {
+        "critical": 0,
+        "high": 7,
+        "medium": 0,
+        "low": 0,
+        "info": 0,
+        "confirmed": 7,
+        "observation": 0,
+        "total": 7
+    },
+    "workflow": null,
+    "limitations": [
+        "The scanner verifies the authorization rules declared in the manifest; it does not infer the application's complete business policy.",
+        "Confirmations are proven against seeded demo resources named in the manifest, not an exhaustive enumeration of every object.",
+        "Security-header and cookie items are hardening observations, interpreted for local HTTP development."
+    ],
+    "findings": [
+        {
+            "finding_id": "BL-7f92e72f24",
+            "check_id": "BL-AUTO-ANON",
+            "title": "Unauthenticated access to a protected resource",
+            "severity": "high",
+            "confirmation": "confirmed",
+            "method": "GET",
+            "route": "/api/invoices/{invoice_id}/attachments",
+            "actor_identity": "anonymous",
+            "expected_rule": "API2:2023 Broken Authentication \u00b7 authentication required",
+            "expected_behavior": "Anonymous callers must not access /api/invoices/{invoice_id}/attachments.",
+            "observed_behavior": "Anonymous request received HTTP 200 with protected data (confidence 100%).",
+            "severity_rationale": "Confirmed authorization-boundary violation (API2:2023 Broken Authentication); confidence 100%.",
+            "cwe": "CWE-306",
+            "remediation": "Require a valid authenticated session for this endpoint.",
+            "limitations": "Confirmed against a discovered resource/endpoint; not an exhaustive object enumeration. Confidence is a deterministic evidence score, not a probability.",
+            "instance_count": 1,
+            "instances": [
+                {
+                    "method": "GET",
+                    "path": "/api/invoices/inv_a7Kq2LmZ9x/attachments",
+                    "status": 200,
+                    "resource": "invoice inv_a7Kq2LmZ9x",
+                    "confidence": 100,
+                    "reasons": [
+                        "target owner marker(s) present in candidate response: ['48211', 'BLM-ALICE-ATT-7F3A']",
+                        "target resource identifier 'inv_a7Kq2LmZ9x' returned to the candidate",
+                        "5 protected field value(s) overlap the owner's response: ['data.attachments[].filename', 'data.attachments[].private_marker', 'data.attachments[].size_bytes', 'data.invoice_id', 'data.owner']",
+                        "normalized JSON similarity to the owner's response is high (100%)",
+                        "candidate response has the same JSON structure as the owner's resource"
+                    ],
+                    "evidence": {
+                        "request": {
+                            "identity": "anonymous",
+                            "method": "GET",
+                            "url": "http://127.0.0.1:8081/api/invoices/inv_a7Kq2LmZ9x/attachments",
+                            "headers": {
+                                "accept": "application/json, text/html;q=0.8"
+                            },
+                            "body": null
+                        },
+                        "response": {
+                            "status": 200,
+                            "headers": {
+                                "content-length": "273",
+                                "content-type": "application/json"
+                            },
+                            "body_excerpt": "{\n  \"data\": {\n    \"invoice_id\": \"inv_a7Kq2LmZ9x\",\n    \"owner\": \"alice\",\n    \"attachments\": [\n      {\n        \"filename\": \"receipt-northwind-0141.pdf\",\n        \"size_bytes\": 48211,\n        \"private_marker\": \"BLM-ALICE-ATT-7F3A\"\n      }\n    ]\n  },\n  \"request_id\": \"8d4aca43-8e32-45ae-ba8b-613171c37782\",\n  \"generated_at\": \"2026-10-23T03:32:57.097847+00:00\"\n}",
+                            "truncated": false,
+                            "redirects": [],
+                            "redirect_blocked": null
+                        },
+                        "error": null,
+                        "duration_ms": 3
+                    }
+                }
+            ],
+            "evidence": {
+                "request": {
+                    "identity": "anonymous",
+                    "method": "GET",
+                    "url": "http://127.0.0.1:8081/api/invoices/inv_a7Kq2LmZ9x/attachments",
+                    "headers": {
+                        "accept": "application/json, text/html;q=0.8"
+                    },
+                    "body": null
+                },
+                "response": {
+                    "status": 200,
+                    "headers": {
+                        "content-length": "273",
+                        "content-type": "application/json"
+                    },
+                    "body_excerpt": "{\n  \"data\": {\n    \"invoice_id\": \"inv_a7Kq2LmZ9x\",\n    \"owner\": \"alice\",\n    \"attachments\": [\n      {\n        \"filename\": \"receipt-northwind-0141.pdf\",\n        \"size_bytes\": 48211,\n        \"private_marker\": \"BLM-ALICE-ATT-7F3A\"\n      }\n    ]\n  },\n  \"request_id\": \"8d4aca43-8e32-45ae-ba8b-613171c37782\",\n  \"generated_at\": \"2026-10-23T03:32:57.097847+00:00\"\n}",
+                    "truncated": false,
+                    "redirects": [],
+                    "redirect_blocked": null
+                },
+                "error": null,
+                "duration_ms": 3,
+                "differential": {
+                    "confirmed": true,
+                    "confidence": 100,
+                    "reasons": [
+                        "target owner marker(s) present in candidate response: ['48211', 'BLM-ALICE-ATT-7F3A']",
+                        "target resource identifier 'inv_a7Kq2LmZ9x' returned to the candidate",
+                        "5 protected field value(s) overlap the owner's response: ['data.attachments[].filename', 'data.attachments[].private_marker', 'data.attachments[].size_bytes', 'data.invoice_id', 'data.owner']",
+                        "normalized JSON similarity to the owner's response is high (100%)",
+                        "candidate response has the same JSON structure as the owner's resource"
+                    ],
+                    "negative_reasons": [],
+                    "metrics": {
+                        "json_similarity": 1.0,
+                        "candidate_status": 200,
+                        "markers_found": [
+                            "48211",
+                            "BLM-ALICE-ATT-7F3A"
+                        ],
+                        "protected_overlap": [
+                            "data.attachments[].filename",
+                            "data.attachments[].private_marker",
+                            "data.attachments[].size_bytes",
+                            "data.invoice_id",
+                            "data.owner"
+                        ],
+                        "body_len": 273
+                    }
+                },
+                "confidence": 100,
+                "owasp": "API2:2023 Broken Authentication"
+            }
+        },
+        {
+            "finding_id": "BL-c8cd8ae015",
+            "check_id": "BL-AUTO-BFLA",
+            "title": "Broken Function Level Authorization",
+            "severity": "high",
+            "confirmation": "confirmed",
+            "method": "GET",
+            "route": "/api/admin/summary",
+            "actor_identity": "alice",
+            "expected_rule": "API5:2023 Broken Function Level Authorization \u00b7 privileged function restricted by role",
+            "expected_behavior": "Role of 'alice' must not access the privileged endpoint /api/admin/summary.",
+            "observed_behavior": "alice received HTTP 200 with privileged data (confidence 100%).",
+            "severity_rationale": "Confirmed authorization-boundary violation (API5:2023 Broken Function Level Authorization); confidence 100%.",
+            "cwe": "CWE-285",
+            "remediation": "Enforce a server-side role/function check on this endpoint before returning data.",
+            "limitations": "Confirmed against a discovered resource/endpoint; not an exhaustive object enumeration. Confidence is a deterministic evidence score, not a probability.",
+            "instance_count": 1,
+            "instances": [
+                {
+                    "method": "GET",
+                    "path": "/api/admin/summary",
+                    "status": 200,
+                    "resource": "/api/admin/summary",
+                    "confidence": 100,
+                    "reasons": [
+                        "target owner marker(s) present in candidate response: ['BLM-ADMIN-SUMMARY-91C2']",
+                        "6 protected field value(s) overlap the owner's response: ['data.active_users', 'data.admin_marker', 'data.pending_review[]', 'data.total_invoices', 'data.totals_by_currency.EUR', 'data.totals_by_currency.USD']",
+                        "normalized JSON similarity to the owner's response is high (100%)",
+                        "candidate response has the same JSON structure as the owner's resource"
+                    ],
+                    "evidence": {
+                        "request": {
+                            "identity": "alice",
+                            "method": "GET",
+                            "url": "http://127.0.0.1:8081/api/admin/summary",
+                            "headers": {
+                                "accept": "application/json, text/html;q=0.8",
+                                "cookie": "ledgerly_session=[REDACTED]"
+                            },
+                            "body": null
+                        },
+                        "response": {
+                            "status": 200,
+                            "headers": {
+                                "content-length": "272",
+                                "content-type": "application/json"
+                            },
+                            "body_excerpt": "{\n  \"data\": {\n    \"total_invoices\": 4,\n    \"totals_by_currency\": {\n      \"EUR\": 1692.5,\n      \"USD\": 739.99\n    },\n    \"active_users\": 3,\n    \"pending_review\": [\n      \"EXP-2026-0178\"\n    ],\n    \"admin_marker\": \"BLM-ADMIN-SUMMARY-91C2\"\n  },\n  \"request_id\": \"a469db4e-08f2-4dcf-9b4c-18e7460420cb\",\n  \"generated_at\": \"2026-10-23T03:32:57.086376+00:00\"\n}",
+                            "truncated": false,
+                            "redirects": [],
+                            "redirect_blocked": null
+                        },
+                        "error": null,
+                        "duration_ms": 3
+                    }
+                }
+            ],
+            "evidence": {
+                "request": {
+                    "identity": "alice",
+                    "method": "GET",
+                    "url": "http://127.0.0.1:8081/api/admin/summary",
+                    "headers": {
+                        "accept": "application/json, text/html;q=0.8",
+                        "cookie": "ledgerly_session=[REDACTED]"
+                    },
+                    "body": null
+                },
+                "response": {
+                    "status": 200,
+                    "headers": {
+                        "content-length": "272",
+                        "content-type": "application/json"
+                    },
+                    "body_excerpt": "{\n  \"data\": {\n    \"total_invoices\": 4,\n    \"totals_by_currency\": {\n      \"EUR\": 1692.5,\n      \"USD\": 739.99\n    },\n    \"active_users\": 3,\n    \"pending_review\": [\n      \"EXP-2026-0178\"\n    ],\n    \"admin_marker\": \"BLM-ADMIN-SUMMARY-91C2\"\n  },\n  \"request_id\": \"a469db4e-08f2-4dcf-9b4c-18e7460420cb\",\n  \"generated_at\": \"2026-10-23T03:32:57.086376+00:00\"\n}",
+                    "truncated": false,
+                    "redirects": [],
+                    "redirect_blocked": null
+                },
+                "error": null,
+                "duration_ms": 3,
+                "differential": {
+                    "confirmed": true,
+                    "confidence": 100,
+                    "reasons": [
+                        "target owner marker(s) present in candidate response: ['BLM-ADMIN-SUMMARY-91C2']",
+                        "6 protected field value(s) overlap the owner's response: ['data.active_users', 'data.admin_marker', 'data.pending_review[]', 'data.total_invoices', 'data.totals_by_currency.EUR', 'data.totals_by_currency.USD']",
+                        "normalized JSON similarity to the owner's response is high (100%)",
+                        "candidate response has the same JSON structure as the owner's resource"
+                    ],
+                    "negative_reasons": [],
+                    "metrics": {
+                        "json_similarity": 1.0,
+                        "candidate_status": 200,
+                        "markers_found": [
+                            "BLM-ADMIN-SUMMARY-91C2"
+                        ],
+                        "protected_overlap": [
+                            "data.active_users",
+                            "data.admin_marker",
+                            "data.pending_review[]",
+                            "data.total_invoices",
+                            "data.totals_by_currency.EUR",
+                            "data.totals_by_currency.USD"
+                        ],
+                        "body_len": 272
+                    }
+                },
+                "confidence": 100,
+                "owasp": "API5:2023 Broken Function Level Authorization"
+            }
+        },
+        {
+            "finding_id": "BL-9fa3025e5f",
+            "check_id": "BL-AUTO-BFLA",
+            "title": "Broken Function Level Authorization",
+            "severity": "high",
+            "confirmation": "confirmed",
+            "method": "GET",
+            "route": "/api/admin/summary",
+            "actor_identity": "bob",
+            "expected_rule": "API5:2023 Broken Function Level Authorization \u00b7 privileged function restricted by role",
+            "expected_behavior": "Role of 'bob' must not access the privileged endpoint /api/admin/summary.",
+            "observed_behavior": "bob received HTTP 200 with privileged data (confidence 100%).",
+            "severity_rationale": "Confirmed authorization-boundary violation (API5:2023 Broken Function Level Authorization); confidence 100%.",
+            "cwe": "CWE-285",
+            "remediation": "Enforce a server-side role/function check on this endpoint before returning data.",
+            "limitations": "Confirmed against a discovered resource/endpoint; not an exhaustive object enumeration. Confidence is a deterministic evidence score, not a probability.",
+            "instance_count": 1,
+            "instances": [
+                {
+                    "method": "GET",
+                    "path": "/api/admin/summary",
+                    "status": 200,
+                    "resource": "/api/admin/summary",
+                    "confidence": 100,
+                    "reasons": [
+                        "target owner marker(s) present in candidate response: ['BLM-ADMIN-SUMMARY-91C2']",
+                        "6 protected field value(s) overlap the owner's response: ['data.active_users', 'data.admin_marker', 'data.pending_review[]', 'data.total_invoices', 'data.totals_by_currency.EUR', 'data.totals_by_currency.USD']",
+                        "normalized JSON similarity to the owner's response is high (100%)",
+                        "candidate response has the same JSON structure as the owner's resource"
+                    ],
+                    "evidence": {
+                        "request": {
+                            "identity": "bob",
+                            "method": "GET",
+                            "url": "http://127.0.0.1:8081/api/admin/summary",
+                            "headers": {
+                                "accept": "application/json, text/html;q=0.8",
+                                "cookie": "ledgerly_session=[REDACTED]"
+                            },
+                            "body": null
+                        },
+                        "response": {
+                            "status": 200,
+                            "headers": {
+                                "content-length": "272",
+                                "content-type": "application/json"
+                            },
+                            "body_excerpt": "{\n  \"data\": {\n    \"total_invoices\": 4,\n    \"totals_by_currency\": {\n      \"EUR\": 1692.5,\n      \"USD\": 739.99\n    },\n    \"active_users\": 3,\n    \"pending_review\": [\n      \"EXP-2026-0178\"\n    ],\n    \"admin_marker\": \"BLM-ADMIN-SUMMARY-91C2\"\n  },\n  \"request_id\": \"bf50aa6f-f2b1-48db-a4d3-6023ccd955f1\",\n  \"generated_at\": \"2026-10-23T03:32:57.089859+00:00\"\n}",
+                            "truncated": false,
+                            "redirects": [],
+                            "redirect_blocked": null
+                        },
+                        "error": null,
+                        "duration_ms": 3
+                    }
+                }
+            ],
+            "evidence": {
+                "request": {
+                    "identity": "bob",
+                    "method": "GET",
+                    "url": "http://127.0.0.1:8081/api/admin/summary",
+                    "headers": {
+                        "accept": "application/json, text/html;q=0.8",
+                        "cookie": "ledgerly_session=[REDACTED]"
+                    },
+                    "body": null
+                },
+                "response": {
+                    "status": 200,
+                    "headers": {
+                        "content-length": "272",
+                        "content-type": "application/json"
+                    },
+                    "body_excerpt": "{\n  \"data\": {\n    \"total_invoices\": 4,\n    \"totals_by_currency\": {\n      \"EUR\": 1692.5,\n      \"USD\": 739.99\n    },\n    \"active_users\": 3,\n    \"pending_review\": [\n      \"EXP-2026-0178\"\n    ],\n    \"admin_marker\": \"BLM-ADMIN-SUMMARY-91C2\"\n  },\n  \"request_id\": \"bf50aa6f-f2b1-48db-a4d3-6023ccd955f1\",\n  \"generated_at\": \"2026-10-23T03:32:57.089859+00:00\"\n}",
+                    "truncated": false,
+                    "redirects": [],
+                    "redirect_blocked": null
+                },
+                "error": null,
+                "duration_ms": 3,
+                "differential": {
+                    "confirmed": true,
+                    "confidence": 100,
+                    "reasons": [
+                        "target owner marker(s) present in candidate response: ['BLM-ADMIN-SUMMARY-91C2']",
+                        "6 protected field value(s) overlap the owner's response: ['data.active_users', 'data.admin_marker', 'data.pending_review[]', 'data.total_invoices', 'data.totals_by_currency.EUR', 'data.totals_by_currency.USD']",
+                        "normalized JSON similarity to the owner's response is high (100%)",
+                        "candidate response has the same JSON structure as the owner's resource"
+                    ],
+                    "negative_reasons": [],
+                    "metrics": {
+                        "json_similarity": 1.0,
+                        "candidate_status": 200,
+                        "markers_found": [
+                            "BLM-ADMIN-SUMMARY-91C2"
+                        ],
+                        "protected_overlap": [
+                            "data.active_users",
+                            "data.admin_marker",
+                            "data.pending_review[]",
+                            "data.total_invoices",
+                            "data.totals_by_currency.EUR",
+                            "data.totals_by_currency.USD"
+                        ],
+                        "body_len": 272
+                    }
+                },
+                "confidence": 100,
+                "owasp": "API5:2023 Broken Function Level Authorization"
+            }
+        },
+        {
+            "finding_id": "BL-5b96dc24d7",
+            "check_id": "BL-AUTO-BOLA",
+            "title": "Broken Object Level Authorization",
+            "severity": "high",
+            "confirmation": "confirmed",
+            "method": "GET",
+            "route": "/api/invoices/{invoice_id}",
+            "actor_identity": "bob",
+            "expected_rule": "API1:2023 Broken Object Level Authorization \u00b7 cross-user object access forbidden",
+            "expected_behavior": "bob must not retrieve alice's invoice inv_a7Kq2LmZ9x.",
+            "observed_behavior": "bob received HTTP 200 containing the target resource's protected data (confidence 100%).",
+            "severity_rationale": "Confirmed authorization-boundary violation (API1:2023 Broken Object Level Authorization); confidence 100%.",
+            "cwe": "CWE-639",
+            "remediation": "Verify resource ownership server-side before returning the object (owner == caller or caller is an authorized role).",
+            "limitations": "Confirmed against a discovered resource/endpoint; not an exhaustive object enumeration. Confidence is a deterministic evidence score, not a probability.",
+            "instance_count": 2,
+            "instances": [
+                {
+                    "method": "GET",
+                    "path": "/api/invoices/inv_a7Kq2LmZ9x",
+                    "status": 200,
+                    "resource": "invoice inv_a7Kq2LmZ9x",
+                    "confidence": 100,
+                    "reasons": [
+                        "target owner marker(s) present in candidate response: ['BLM-ALICE-INV-7F3A', 'EXP-2026-0141']",
+                        "target resource identifier 'inv_a7Kq2LmZ9x' returned to the candidate",
+                        "11 protected field value(s) overlap the owner's response: ['data.invoice.amount', 'data.invoice.category', 'data.invoice.confidential_ref', 'data.invoice.currency', 'data.invoice.id', 'data.invoice.issued_on']",
+                        "normalized JSON similarity to the owner's response is high (100%)",
+                        "candidate response has the same JSON structure as the owner's resource"
+                    ],
+                    "evidence": {
+                        "request": {
+                            "identity": "bob",
+                            "method": "GET",
+                            "url": "http://127.0.0.1:8081/api/invoices/inv_a7Kq2LmZ9x",
+                            "headers": {
+                                "accept": "application/json, text/html;q=0.8",
+                                "cookie": "ledgerly_session=[REDACTED]"
+                            },
+                            "body": null
+                        },
+                        "response": {
+                            "status": 200,
+                            "headers": {
+                                "content-length": "421",
+                                "content-type": "application/json"
+                            },
+                            "body_excerpt": "{\n  \"data\": {\n    \"invoice\": {\n      \"id\": \"inv_a7Kq2LmZ9x\",\n      \"number\": \"EXP-2026-0141\",\n      \"owner\": \"alice\",\n      \"vendor\": \"Northwind Office Supply\",\n      \"category\": \"office\",\n      \"amount\": \"412.50\",\n      \"currency\": \"EUR\",\n      \"status\": \"approved\",\n      \"issued_on\": \"2026-03-04\",\n      \"notes\": \"Ergonomic chair and monitor arm for home office.\",\n      \"confidential_ref\": \"BLM-ALICE-INV-7F3A\"\n    }\n  },\n  \"request_id\": \"645f686b-cdd1-4d98-89be-e90c539a8226\",\n  \"generated_at\": \"2026-10-23T03:32:57.043863+00:00\"\n}",
+                            "truncated": false,
+                            "redirects": [],
+                            "redirect_blocked": null
+                        },
+                        "error": null,
+                        "duration_ms": 2
+                    }
+                },
+                {
+                    "method": "GET",
+                    "path": "/api/invoices/inv_a3Vt8RpQ1c",
+                    "status": 200,
+                    "resource": "invoice inv_a3Vt8RpQ1c",
+                    "confidence": 100,
+                    "reasons": [
+                        "target owner marker(s) present in candidate response: ['BLM-ALICE-INV-2C8D', 'EXP-2026-0178']",
+                        "target resource identifier 'inv_a3Vt8RpQ1c' returned to the candidate",
+                        "11 protected field value(s) overlap the owner's response: ['data.invoice.amount', 'data.invoice.category', 'data.invoice.confidential_ref', 'data.invoice.currency', 'data.invoice.id', 'data.invoice.issued_on']",
+                        "normalized JSON similarity to the owner's response is high (100%)",
+                        "candidate response has the same JSON structure as the owner's resource"
+                    ],
+                    "evidence": {
+                        "request": {
+                            "identity": "bob",
+                            "method": "GET",
+                            "url": "http://127.0.0.1:8081/api/invoices/inv_a3Vt8RpQ1c",
+                            "headers": {
+                                "accept": "application/json, text/html;q=0.8",
+                                "cookie": "ledgerly_session=[REDACTED]"
+                            },
+                            "body": null
+                        },
+                        "response": {
+                            "status": 200,
+                            "headers": {
+                                "content-length": "413",
+                                "content-type": "application/json"
+                            },
+                            "body_excerpt": "{\n  \"data\": {\n    \"invoice\": {\n      \"id\": \"inv_a3Vt8RpQ1c\",\n      \"number\": \"EXP-2026-0178\",\n      \"owner\": \"alice\",\n      \"vendor\": \"Harbor Rail Travel\",\n      \"category\": \"travel\",\n      \"amount\": \"1280.00\",\n      \"currency\": \"EUR\",\n      \"status\": \"submitted\",\n      \"issued_on\": \"2026-04-19\",\n      \"notes\": \"Client workshop travel, two return tickets.\",\n      \"confidential_ref\": \"BLM-ALICE-INV-2C8D\"\n    }\n  },\n  \"request_id\": \"84b3d9f1-ead6-4292-bad4-f9dfc5746507\",\n  \"generated_at\": \"2026-10-23T03:32:57.047668+00:00\"\n}",
+                            "truncated": false,
+                            "redirects": [],
+                            "redirect_blocked": null
+                        },
+                        "error": null,
+                        "duration_ms": 3
+                    }
+                }
+            ],
+            "evidence": {
+                "request": {
+                    "identity": "bob",
+                    "method": "GET",
+                    "url": "http://127.0.0.1:8081/api/invoices/inv_a7Kq2LmZ9x",
+                    "headers": {
+                        "accept": "application/json, text/html;q=0.8",
+                        "cookie": "ledgerly_session=[REDACTED]"
+                    },
+                    "body": null
+                },
+                "response": {
+                    "status": 200,
+                    "headers": {
+                        "content-length": "421",
+                        "content-type": "application/json"
+                    },
+                    "body_excerpt": "{\n  \"data\": {\n    \"invoice\": {\n      \"id\": \"inv_a7Kq2LmZ9x\",\n      \"number\": \"EXP-2026-0141\",\n      \"owner\": \"alice\",\n      \"vendor\": \"Northwind Office Supply\",\n      \"category\": \"office\",\n      \"amount\": \"412.50\",\n      \"currency\": \"EUR\",\n      \"status\": \"approved\",\n      \"issued_on\": \"2026-03-04\",\n      \"notes\": \"Ergonomic chair and monitor arm for home office.\",\n      \"confidential_ref\": \"BLM-ALICE-INV-7F3A\"\n    }\n  },\n  \"request_id\": \"645f686b-cdd1-4d98-89be-e90c539a8226\",\n  \"generated_at\": \"2026-10-23T03:32:57.043863+00:00\"\n}",
+                    "truncated": false,
+                    "redirects": [],
+                    "redirect_blocked": null
+                },
+                "error": null,
+                "duration_ms": 2,
+                "differential": {
+                    "confirmed": true,
+                    "confidence": 100,
+                    "reasons": [
+                        "target owner marker(s) present in candidate response: ['BLM-ALICE-INV-7F3A', 'EXP-2026-0141']",
+                        "target resource identifier 'inv_a7Kq2LmZ9x' returned to the candidate",
+                        "11 protected field value(s) overlap the owner's response: ['data.invoice.amount', 'data.invoice.category', 'data.invoice.confidential_ref', 'data.invoice.currency', 'data.invoice.id', 'data.invoice.issued_on']",
+                        "normalized JSON similarity to the owner's response is high (100%)",
+                        "candidate response has the same JSON structure as the owner's resource"
+                    ],
+                    "negative_reasons": [],
+                    "metrics": {
+                        "json_similarity": 1.0,
+                        "candidate_status": 200,
+                        "markers_found": [
+                            "BLM-ALICE-INV-7F3A",
+                            "EXP-2026-0141"
+                        ],
+                        "protected_overlap": [
+                            "data.invoice.amount",
+                            "data.invoice.category",
+                            "data.invoice.confidential_ref",
+                            "data.invoice.currency",
+                            "data.invoice.id",
+                            "data.invoice.issued_on",
+                            "data.invoice.notes",
+                            "data.invoice.number",
+                            "data.invoice.owner",
+                            "data.invoice.status",
+                            "data.invoice.vendor"
+                        ],
+                        "body_len": 421
+                    }
+                },
+                "confidence": 100,
+                "owasp": "API1:2023 Broken Object Level Authorization"
+            }
+        },
+        {
+            "finding_id": "BL-ebe5b622df",
+            "check_id": "BL-AUTO-BOLA",
+            "title": "Broken Object Level Authorization",
+            "severity": "high",
+            "confirmation": "confirmed",
+            "method": "GET",
+            "route": "/api/invoices/{invoice_id}",
+            "actor_identity": "alice",
+            "expected_rule": "API1:2023 Broken Object Level Authorization \u00b7 cross-user object access forbidden",
+            "expected_behavior": "alice must not retrieve bob's invoice inv_b5Nc4WyH6e.",
+            "observed_behavior": "alice received HTTP 200 containing the target resource's protected data (confidence 100%).",
+            "severity_rationale": "Confirmed authorization-boundary violation (API1:2023 Broken Object Level Authorization); confidence 100%.",
+            "cwe": "CWE-639",
+            "remediation": "Verify resource ownership server-side before returning the object (owner == caller or caller is an authorized role).",
+            "limitations": "Confirmed against a discovered resource/endpoint; not an exhaustive object enumeration. Confidence is a deterministic evidence score, not a probability.",
+            "instance_count": 2,
+            "instances": [
+                {
+                    "method": "GET",
+                    "path": "/api/invoices/inv_b5Nc4WyH6e",
+                    "status": 200,
+                    "resource": "invoice inv_b5Nc4WyH6e",
+                    "confidence": 100,
+                    "reasons": [
+                        "target owner marker(s) present in candidate response: ['BLM-BOB-INV-5E19', 'EXP-2026-0152']",
+                        "target resource identifier 'inv_b5Nc4WyH6e' returned to the candidate",
+                        "11 protected field value(s) overlap the owner's response: ['data.invoice.amount', 'data.invoice.category', 'data.invoice.confidential_ref', 'data.invoice.currency', 'data.invoice.id', 'data.invoice.issued_on']",
+                        "normalized JSON similarity to the owner's response is high (100%)",
+                        "candidate response has the same JSON structure as the owner's resource"
+                    ],
+                    "evidence": {
+                        "request": {
+                            "identity": "alice",
+                            "method": "GET",
+                            "url": "http://127.0.0.1:8081/api/invoices/inv_b5Nc4WyH6e",
+                            "headers": {
+                                "accept": "application/json, text/html;q=0.8",
+                                "cookie": "ledgerly_session=[REDACTED]"
+                            },
+                            "body": null
+                        },
+                        "response": {
+                            "status": 200,
+                            "headers": {
+                                "content-length": "400",
+                                "content-type": "application/json"
+                            },
+                            "body_excerpt": "{\n  \"data\": {\n    \"invoice\": {\n      \"id\": \"inv_b5Nc4WyH6e\",\n      \"number\": \"EXP-2026-0152\",\n      \"owner\": \"bob\",\n      \"vendor\": \"Cobalt Coworking\",\n      \"category\": \"workspace\",\n      \"amount\": \"650.00\",\n      \"currency\": \"USD\",\n      \"status\": \"approved\",\n      \"issued_on\": \"2026-03-21\",\n      \"notes\": \"Monthly hot-desk membership, March.\",\n      \"confidential_ref\": \"BLM-BOB-INV-5E19\"\n    }\n  },\n  \"request_id\": \"430b65d3-b78f-421e-a767-664072dd0f17\",\n  \"generated_at\": \"2026-10-23T03:32:57.051842+00:00\"\n}",
+                            "truncated": false,
+                            "redirects": [],
+                            "redirect_blocked": null
+                        },
+                        "error": null,
+                        "duration_ms": 3
+                    }
+                },
+                {
+                    "method": "GET",
+                    "path": "/api/invoices/inv_b9Xs1DfJ3u",
+                    "status": 200,
+                    "resource": "invoice inv_b9Xs1DfJ3u",
+                    "confidence": 100,
+                    "reasons": [
+                        "target owner marker(s) present in candidate response: ['BLM-BOB-INV-9A04', 'EXP-2026-0190']",
+                        "target resource identifier 'inv_b9Xs1DfJ3u' returned to the candidate",
+                        "11 protected field value(s) overlap the owner's response: ['data.invoice.amount', 'data.invoice.category', 'data.invoice.confidential_ref', 'data.invoice.currency', 'data.invoice.id', 'data.invoice.issued_on']",
+                        "normalized JSON similarity to the owner's response is high (100%)",
+                        "candidate response has the same JSON structure as the owner's resource"
+                    ],
+                    "evidence": {
+                        "request": {
+                            "identity": "alice",
+                            "method": "GET",
+                            "url": "http://127.0.0.1:8081/api/invoices/inv_b9Xs1DfJ3u",
+                            "headers": {
+                                "accept": "application/json, text/html;q=0.8",
+                                "cookie": "ledgerly_session=[REDACTED]"
+                            },
+                            "body": null
+                        },
+                        "response": {
+                            "status": 200,
+                            "headers": {
+                                "content-length": "409",
+                                "content-type": "application/json"
+                            },
+                            "body_excerpt": "{\n  \"data\": {\n    \"invoice\": {\n      \"id\": \"inv_b9Xs1DfJ3u\",\n      \"number\": \"EXP-2026-0190\",\n      \"owner\": \"bob\",\n      \"vendor\": \"Lumen Cloud Hosting\",\n      \"category\": \"software\",\n      \"amount\": \"89.99\",\n      \"currency\": \"USD\",\n      \"status\": \"rejected\",\n      \"issued_on\": \"2026-05-02\",\n      \"notes\": \"Personal project hosting; not reimbursable.\",\n      \"confidential_ref\": \"BLM-BOB-INV-9A04\"\n    }\n  },\n  \"request_id\": \"6f3dd4db-a1e9-4764-b322-cc8fd1c84891\",\n  \"generated_at\": \"2026-10-23T03:32:57.055808+00:00\"\n}",
+                            "truncated": false,
+                            "redirects": [],
+                            "redirect_blocked": null
+                        },
+                        "error": null,
+                        "duration_ms": 3
+                    }
+                }
+            ],
+            "evidence": {
+                "request": {
+                    "identity": "alice",
+                    "method": "GET",
+                    "url": "http://127.0.0.1:8081/api/invoices/inv_b5Nc4WyH6e",
+                    "headers": {
+                        "accept": "application/json, text/html;q=0.8",
+                        "cookie": "ledgerly_session=[REDACTED]"
+                    },
+                    "body": null
+                },
+                "response": {
+                    "status": 200,
+                    "headers": {
+                        "content-length": "400",
+                        "content-type": "application/json"
+                    },
+                    "body_excerpt": "{\n  \"data\": {\n    \"invoice\": {\n      \"id\": \"inv_b5Nc4WyH6e\",\n      \"number\": \"EXP-2026-0152\",\n      \"owner\": \"bob\",\n      \"vendor\": \"Cobalt Coworking\",\n      \"category\": \"workspace\",\n      \"amount\": \"650.00\",\n      \"currency\": \"USD\",\n      \"status\": \"approved\",\n      \"issued_on\": \"2026-03-21\",\n      \"notes\": \"Monthly hot-desk membership, March.\",\n      \"confidential_ref\": \"BLM-BOB-INV-5E19\"\n    }\n  },\n  \"request_id\": \"430b65d3-b78f-421e-a767-664072dd0f17\",\n  \"generated_at\": \"2026-10-23T03:32:57.051842+00:00\"\n}",
+                    "truncated": false,
+                    "redirects": [],
+                    "redirect_blocked": null
+                },
+                "error": null,
+                "duration_ms": 3,
+                "differential": {
+                    "confirmed": true,
+                    "confidence": 100,
+                    "reasons": [
+                        "target owner marker(s) present in candidate response: ['BLM-BOB-INV-5E19', 'EXP-2026-0152']",
+                        "target resource identifier 'inv_b5Nc4WyH6e' returned to the candidate",
+                        "11 protected field value(s) overlap the owner's response: ['data.invoice.amount', 'data.invoice.category', 'data.invoice.confidential_ref', 'data.invoice.currency', 'data.invoice.id', 'data.invoice.issued_on']",
+                        "normalized JSON similarity to the owner's response is high (100%)",
+                        "candidate response has the same JSON structure as the owner's resource"
+                    ],
+                    "negative_reasons": [],
+                    "metrics": {
+                        "json_similarity": 1.0,
+                        "candidate_status": 200,
+                        "markers_found": [
+                            "BLM-BOB-INV-5E19",
+                            "EXP-2026-0152"
+                        ],
+                        "protected_overlap": [
+                            "data.invoice.amount",
+                            "data.invoice.category",
+                            "data.invoice.confidential_ref",
+                            "data.invoice.currency",
+                            "data.invoice.id",
+                            "data.invoice.issued_on",
+                            "data.invoice.notes",
+                            "data.invoice.number",
+                            "data.invoice.owner",
+                            "data.invoice.status",
+                            "data.invoice.vendor"
+                        ],
+                        "body_len": 400
+                    }
+                },
+                "confidence": 100,
+                "owasp": "API1:2023 Broken Object Level Authorization"
+            }
+        },
+        {
+            "finding_id": "BL-467d1a2526",
+            "check_id": "BL-AUTO-BOLA",
+            "title": "Broken Object Level Authorization",
+            "severity": "high",
+            "confirmation": "confirmed",
+            "method": "GET",
+            "route": "/api/invoices/{invoice_id}/attachments",
+            "actor_identity": "bob",
+            "expected_rule": "API1:2023 Broken Object Level Authorization \u00b7 cross-user object access forbidden",
+            "expected_behavior": "bob must not retrieve alice's invoice inv_a7Kq2LmZ9x.",
+            "observed_behavior": "bob received HTTP 200 containing the target resource's protected data (confidence 100%).",
+            "severity_rationale": "Confirmed authorization-boundary violation (API1:2023 Broken Object Level Authorization); confidence 100%.",
+            "cwe": "CWE-639",
+            "remediation": "Verify resource ownership server-side before returning the object (owner == caller or caller is an authorized role).",
+            "limitations": "Confirmed against a discovered resource/endpoint; not an exhaustive object enumeration. Confidence is a deterministic evidence score, not a probability.",
+            "instance_count": 2,
+            "instances": [
+                {
+                    "method": "GET",
+                    "path": "/api/invoices/inv_a7Kq2LmZ9x/attachments",
+                    "status": 200,
+                    "resource": "invoice inv_a7Kq2LmZ9x",
+                    "confidence": 100,
+                    "reasons": [
+                        "target owner marker(s) present in candidate response: ['48211', 'BLM-ALICE-ATT-7F3A']",
+                        "target resource identifier 'inv_a7Kq2LmZ9x' returned to the candidate",
+                        "5 protected field value(s) overlap the owner's response: ['data.attachments[].filename', 'data.attachments[].private_marker', 'data.attachments[].size_bytes', 'data.invoice_id', 'data.owner']",
+                        "normalized JSON similarity to the owner's response is high (100%)",
+                        "candidate response has the same JSON structure as the owner's resource"
+                    ],
+                    "evidence": {
+                        "request": {
+                            "identity": "bob",
+                            "method": "GET",
+                            "url": "http://127.0.0.1:8081/api/invoices/inv_a7Kq2LmZ9x/attachments",
+                            "headers": {
+                                "accept": "application/json, text/html;q=0.8",
+                                "cookie": "ledgerly_session=[REDACTED]"
+                            },
+                            "body": null
+                        },
+                        "response": {
+                            "status": 200,
+                            "headers": {
+                                "content-length": "273",
+                                "content-type": "application/json"
+                            },
+                            "body_excerpt": "{\n  \"data\": {\n    \"invoice_id\": \"inv_a7Kq2LmZ9x\",\n    \"owner\": \"alice\",\n    \"attachments\": [\n      {\n        \"filename\": \"receipt-northwind-0141.pdf\",\n        \"size_bytes\": 48211,\n        \"private_marker\": \"BLM-ALICE-ATT-7F3A\"\n      }\n    ]\n  },\n  \"request_id\": \"189c48f9-a4cc-498b-9a7c-eb0af50f192c\",\n  \"generated_at\": \"2026-10-23T03:32:57.058784+00:00\"\n}",
+                            "truncated": false,
+                            "redirects": [],
+                            "redirect_blocked": null
+                        },
+                        "error": null,
+                        "duration_ms": 2
+                    }
+                },
+                {
+                    "method": "GET",
+                    "path": "/api/invoices/inv_a3Vt8RpQ1c/attachments",
+                    "status": 200,
+                    "resource": "invoice inv_a3Vt8RpQ1c",
+                    "confidence": 100,
+                    "reasons": [
+                        "target owner marker(s) present in candidate response: ['91022', 'BLM-ALICE-ATT-2C8D']",
+                        "target resource identifier 'inv_a3Vt8RpQ1c' returned to the candidate",
+                        "5 protected field value(s) overlap the owner's response: ['data.attachments[].filename', 'data.attachments[].private_marker', 'data.attachments[].size_bytes', 'data.invoice_id', 'data.owner']",
+                        "normalized JSON similarity to the owner's response is high (100%)",
+                        "candidate response has the same JSON structure as the owner's resource"
+                    ],
+                    "evidence": {
+                        "request": {
+                            "identity": "bob",
+                            "method": "GET",
+                            "url": "http://127.0.0.1:8081/api/invoices/inv_a3Vt8RpQ1c/attachments",
+                            "headers": {
+                                "accept": "application/json, text/html;q=0.8",
+                                "cookie": "ledgerly_session=[REDACTED]"
+                            },
+                            "body": null
+                        },
+                        "response": {
+                            "status": 200,
+                            "headers": {
+                                "content-length": "268",
+                                "content-type": "application/json"
+                            },
+                            "body_excerpt": "{\n  \"data\": {\n    \"invoice_id\": \"inv_a3Vt8RpQ1c\",\n    \"owner\": \"alice\",\n    \"attachments\": [\n      {\n        \"filename\": \"rail-tickets-0178.pdf\",\n        \"size_bytes\": 91022,\n        \"private_marker\": \"BLM-ALICE-ATT-2C8D\"\n      }\n    ]\n  },\n  \"request_id\": \"a3511851-18de-455a-8ba6-7b15efc0b1f8\",\n  \"generated_at\": \"2026-10-23T03:32:57.063153+00:00\"\n}",
+                            "truncated": false,
+                            "redirects": [],
+                            "redirect_blocked": null
+                        },
+                        "error": null,
+                        "duration_ms": 3
+                    }
+                }
+            ],
+            "evidence": {
+                "request": {
+                    "identity": "bob",
+                    "method": "GET",
+                    "url": "http://127.0.0.1:8081/api/invoices/inv_a7Kq2LmZ9x/attachments",
+                    "headers": {
+                        "accept": "application/json, text/html;q=0.8",
+                        "cookie": "ledgerly_session=[REDACTED]"
+                    },
+                    "body": null
+                },
+                "response": {
+                    "status": 200,
+                    "headers": {
+                        "content-length": "273",
+                        "content-type": "application/json"
+                    },
+                    "body_excerpt": "{\n  \"data\": {\n    \"invoice_id\": \"inv_a7Kq2LmZ9x\",\n    \"owner\": \"alice\",\n    \"attachments\": [\n      {\n        \"filename\": \"receipt-northwind-0141.pdf\",\n        \"size_bytes\": 48211,\n        \"private_marker\": \"BLM-ALICE-ATT-7F3A\"\n      }\n    ]\n  },\n  \"request_id\": \"189c48f9-a4cc-498b-9a7c-eb0af50f192c\",\n  \"generated_at\": \"2026-10-23T03:32:57.058784+00:00\"\n}",
+                    "truncated": false,
+                    "redirects": [],
+                    "redirect_blocked": null
+                },
+                "error": null,
+                "duration_ms": 2,
+                "differential": {
+                    "confirmed": true,
+                    "confidence": 100,
+                    "reasons": [
+                        "target owner marker(s) present in candidate response: ['48211', 'BLM-ALICE-ATT-7F3A']",
+                        "target resource identifier 'inv_a7Kq2LmZ9x' returned to the candidate",
+                        "5 protected field value(s) overlap the owner's response: ['data.attachments[].filename', 'data.attachments[].private_marker', 'data.attachments[].size_bytes', 'data.invoice_id', 'data.owner']",
+                        "normalized JSON similarity to the owner's response is high (100%)",
+                        "candidate response has the same JSON structure as the owner's resource"
+                    ],
+                    "negative_reasons": [],
+                    "metrics": {
+                        "json_similarity": 1.0,
+                        "candidate_status": 200,
+                        "markers_found": [
+                            "48211",
+                            "BLM-ALICE-ATT-7F3A"
+                        ],
+                        "protected_overlap": [
+                            "data.attachments[].filename",
+                            "data.attachments[].private_marker",
+                            "data.attachments[].size_bytes",
+                            "data.invoice_id",
+                            "data.owner"
+                        ],
+                        "body_len": 273
+                    }
+                },
+                "confidence": 100,
+                "owasp": "API1:2023 Broken Object Level Authorization"
+            }
+        },
+        {
+            "finding_id": "BL-31c8f61096",
+            "check_id": "BL-AUTO-BOLA",
+            "title": "Broken Object Level Authorization",
+            "severity": "high",
+            "confirmation": "confirmed",
+            "method": "GET",
+            "route": "/api/invoices/{invoice_id}/attachments",
+            "actor_identity": "alice",
+            "expected_rule": "API1:2023 Broken Object Level Authorization \u00b7 cross-user object access forbidden",
+            "expected_behavior": "alice must not retrieve bob's invoice inv_b5Nc4WyH6e.",
+            "observed_behavior": "alice received HTTP 200 containing the target resource's protected data (confidence 100%).",
+            "severity_rationale": "Confirmed authorization-boundary violation (API1:2023 Broken Object Level Authorization); confidence 100%.",
+            "cwe": "CWE-639",
+            "remediation": "Verify resource ownership server-side before returning the object (owner == caller or caller is an authorized role).",
+            "limitations": "Confirmed against a discovered resource/endpoint; not an exhaustive object enumeration. Confidence is a deterministic evidence score, not a probability.",
+            "instance_count": 2,
+            "instances": [
+                {
+                    "method": "GET",
+                    "path": "/api/invoices/inv_b5Nc4WyH6e/attachments",
+                    "status": 200,
+                    "resource": "invoice inv_b5Nc4WyH6e",
+                    "confidence": 100,
+                    "reasons": [
+                        "target owner marker(s) present in candidate response: ['30554', 'BLM-BOB-ATT-5E19']",
+                        "target resource identifier 'inv_b5Nc4WyH6e' returned to the candidate",
+                        "5 protected field value(s) overlap the owner's response: ['data.attachments[].filename', 'data.attachments[].private_marker', 'data.attachments[].size_bytes', 'data.invoice_id', 'data.owner']",
+                        "normalized JSON similarity to the owner's response is high (100%)",
+                        "candidate response has the same JSON structure as the owner's resource"
+                    ],
+                    "evidence": {
+                        "request": {
+                            "identity": "alice",
+                            "method": "GET",
+                            "url": "http://127.0.0.1:8081/api/invoices/inv_b5Nc4WyH6e/attachments",
+                            "headers": {
+                                "accept": "application/json, text/html;q=0.8",
+                                "cookie": "ledgerly_session=[REDACTED]"
+                            },
+                            "body": null
+                        },
+                        "response": {
+                            "status": 200,
+                            "headers": {
+                                "content-length": "264",
+                                "content-type": "application/json"
+                            },
+                            "body_excerpt": "{\n  \"data\": {\n    \"invoice_id\": \"inv_b5Nc4WyH6e\",\n    \"owner\": \"bob\",\n    \"attachments\": [\n      {\n        \"filename\": \"cobalt-march-0152.pdf\",\n        \"size_bytes\": 30554,\n        \"private_marker\": \"BLM-BOB-ATT-5E19\"\n      }\n    ]\n  },\n  \"request_id\": \"f3f2b556-b3ea-4507-ac00-0093615fa041\",\n  \"generated_at\": \"2026-10-23T03:32:57.069241+00:00\"\n}",
+                            "truncated": false,
+                            "redirects": [],
+                            "redirect_blocked": null
+                        },
+                        "error": null,
+                        "duration_ms": 5
+                    }
+                },
+                {
+                    "method": "GET",
+                    "path": "/api/invoices/inv_b9Xs1DfJ3u/attachments",
+                    "status": 200,
+                    "resource": "invoice inv_b9Xs1DfJ3u",
+                    "confidence": 100,
+                    "reasons": [
+                        "target owner marker(s) present in candidate response: ['12870', 'BLM-BOB-ATT-9A04']",
+                        "target resource identifier 'inv_b9Xs1DfJ3u' returned to the candidate",
+                        "5 protected field value(s) overlap the owner's response: ['data.attachments[].filename', 'data.attachments[].private_marker', 'data.attachments[].size_bytes', 'data.invoice_id', 'data.owner']",
+                        "normalized JSON similarity to the owner's response is high (100%)",
+                        "candidate response has the same JSON structure as the owner's resource"
+                    ],
+                    "evidence": {
+                        "request": {
+                            "identity": "alice",
+                            "method": "GET",
+                            "url": "http://127.0.0.1:8081/api/invoices/inv_b9Xs1DfJ3u/attachments",
+                            "headers": {
+                                "accept": "application/json, text/html;q=0.8",
+                                "cookie": "ledgerly_session=[REDACTED]"
+                            },
+                            "body": null
+                        },
+                        "response": {
+                            "status": 200,
+                            "headers": {
+                                "content-length": "261",
+                                "content-type": "application/json"
+                            },
+                            "body_excerpt": "{\n  \"data\": {\n    \"invoice_id\": \"inv_b9Xs1DfJ3u\",\n    \"owner\": \"bob\",\n    \"attachments\": [\n      {\n        \"filename\": \"lumen-may-0190.pdf\",\n        \"size_bytes\": 12870,\n        \"private_marker\": \"BLM-BOB-ATT-9A04\"\n      }\n    ]\n  },\n  \"request_id\": \"c097b7ac-edfb-4f8a-9753-6f0deaf6fd09\",\n  \"generated_at\": \"2026-10-23T03:32:57.072170+00:00\"\n}",
+                            "truncated": false,
+                            "redirects": [],
+                            "redirect_blocked": null
+                        },
+                        "error": null,
+                        "duration_ms": 2
+                    }
+                }
+            ],
+            "evidence": {
+                "request": {
+                    "identity": "alice",
+                    "method": "GET",
+                    "url": "http://127.0.0.1:8081/api/invoices/inv_b5Nc4WyH6e/attachments",
+                    "headers": {
+                        "accept": "application/json, text/html;q=0.8",
+                        "cookie": "ledgerly_session=[REDACTED]"
+                    },
+                    "body": null
+                },
+                "response": {
+                    "status": 200,
+                    "headers": {
+                        "content-length": "264",
+                        "content-type": "application/json"
+                    },
+                    "body_excerpt": "{\n  \"data\": {\n    \"invoice_id\": \"inv_b5Nc4WyH6e\",\n    \"owner\": \"bob\",\n    \"attachments\": [\n      {\n        \"filename\": \"cobalt-march-0152.pdf\",\n        \"size_bytes\": 30554,\n        \"private_marker\": \"BLM-BOB-ATT-5E19\"\n      }\n    ]\n  },\n  \"request_id\": \"f3f2b556-b3ea-4507-ac00-0093615fa041\",\n  \"generated_at\": \"2026-10-23T03:32:57.069241+00:00\"\n}",
+                    "truncated": false,
+                    "redirects": [],
+                    "redirect_blocked": null
+                },
+                "error": null,
+                "duration_ms": 5,
+                "differential": {
+                    "confirmed": true,
+                    "confidence": 100,
+                    "reasons": [
+                        "target owner marker(s) present in candidate response: ['30554', 'BLM-BOB-ATT-5E19']",
+                        "target resource identifier 'inv_b5Nc4WyH6e' returned to the candidate",
+                        "5 protected field value(s) overlap the owner's response: ['data.attachments[].filename', 'data.attachments[].private_marker', 'data.attachments[].size_bytes', 'data.invoice_id', 'data.owner']",
+                        "normalized JSON similarity to the owner's response is high (100%)",
+                        "candidate response has the same JSON structure as the owner's resource"
+                    ],
+                    "negative_reasons": [],
+                    "metrics": {
+                        "json_similarity": 1.0,
+                        "candidate_status": 200,
+                        "markers_found": [
+                            "30554",
+                            "BLM-BOB-ATT-5E19"
+                        ],
+                        "protected_overlap": [
+                            "data.attachments[].filename",
+                            "data.attachments[].private_marker",
+                            "data.attachments[].size_bytes",
+                            "data.invoice_id",
+                            "data.owner"
+                        ],
+                        "body_len": 264
+                    }
+                },
+                "confidence": 100,
+                "owasp": "API1:2023 Broken Object Level Authorization"
+            }
+        }
+    ]
+}

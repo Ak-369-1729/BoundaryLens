@@ -1,0 +1,404 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>BoundaryLens report — vulnerable</title>
+<style>
+:root{color-scheme:light}
+body{font-family:-apple-system,Segoe UI,Roboto,sans-serif;max-width:900px;margin:0 auto;padding:24px;color:#1b1f24;line-height:1.5}
+h1{margin-bottom:4px}.muted{color:#5b636d}
+table{border-collapse:collapse;width:100%;margin:8px 0}th,td{border:1px solid #d9dee4;padding:6px 10px;text-align:left;vertical-align:top;font-size:14px}
+th{background:#f3f5f8;width:190px}
+pre{background:#0f1419;color:#e6e8eb;padding:12px;border-radius:6px;overflow:auto;font-size:12px;white-space:pre-wrap;word-break:break-word}
+.finding{border:1px solid #d9dee4;border-left-width:5px;border-radius:8px;padding:14px 18px;margin:18px 0}
+.sev-critical{border-left-color:#b00020}.sev-high{border-left-color:#d7263d}.sev-medium{border-left-color:#e08600}
+.sev-low{border-left-color:#2f80ed}.sev-info{border-left-color:#777}
+.badge{font-size:12px;padding:2px 8px;border-radius:10px;background:#eef1f5;margin-left:6px}
+.badge.sev-critical,.badge.sev-high{background:#fde0e3;color:#b00020}.badge.sev-medium{background:#fde6cf;color:#8a5200}
+.badge.sev-low{background:#e2edff;color:#1b4fa0}.badge.conf{background:#e4f6ea;color:#1b6b38}
+.chip{display:inline-block;padding:3px 10px;border-radius:12px;margin:2px;font-size:13px;background:#eef1f5}
+.chip.sev-critical,.chip.sev-high{background:#fde0e3}.chip.sev-medium{background:#fde6cf}.chip.sev-low{background:#e2edff}
+details{margin:8px 0}summary{cursor:pointer;font-weight:600}.empty{color:#5b636d}.err{color:#b00020}
+@media print{.finding{break-inside:avoid}pre{white-space:pre-wrap}}
+</style></head><body>
+<h1>BoundaryLens scan report</h1>
+<p class="muted">Role-aware authorization scan · generated 2026-10-23T03:36:38.926672+00:00</p>
+<table>
+<tr><th>Target</th><td>ledgerly-vulnerable (vulnerable) — http://127.0.0.1:8081</td></tr>
+<tr><th>Scan</th><td>3afe7a61-f0f6-4b66-b828-59be1cc5af3c · status completed</td></tr>
+<tr><th>Requests</th><td>56 of budget 150</td></tr>
+<tr><th>Window</th><td>2026-10-23T03:32:56.666091 → 2026-10-23T03:32:57.106780</td></tr>
+<tr><th>Authorization</th><td>Ledgerly is a fictional application shipped with BoundaryLens and started on this machine. The operator owns it and may test it.</td></tr>
+</table>
+<p><span class='chip sev-high'>high: 7</span></p>
+<h2>Checks executed</h2><ul><li><strong>BL-AUTO-BOLA</strong> Broken Object Level Authorization — assessed</li><li><strong>BL-AUTO-BFLA</strong> Broken Function Level Authorization — assessed</li><li><strong>BL-AUTO-ANON</strong> Unauthenticated access to a protected resource — assessed</li></ul>
+<h2>Findings</h2><section class='finding sev-high'><h3>Unauthenticated access to a protected resource <span class='badge sev-high'>high</span> <span class='badge conf'>confirmed</span></h3><table><tr><th>Finding ID</th><td>BL-7f92e72f24</td></tr><tr><th>Check</th><td>BL-AUTO-ANON — Unauthenticated access to a protected resource</td></tr><tr><th>Endpoint</th><td>GET /api/invoices/{invoice_id}/attachments</td></tr><tr><th>Actor identity</th><td>anonymous</td></tr><tr><th>Expected rule</th><td>API2:2023 Broken Authentication · authentication required</td></tr><tr><th>Expected behavior</th><td>Anonymous callers must not access /api/invoices/{invoice_id}/attachments.</td></tr><tr><th>Observed behavior</th><td>Anonymous request received HTTP 200 with protected data (confidence 100%).</td></tr><tr><th>Severity</th><td>high — Confirmed authorization-boundary violation (API2:2023 Broken Authentication); confidence 100%.</td></tr><tr><th>Confirmation</th><td>confirmed</td></tr><tr><th>CWE</th><td>CWE-306</td></tr><tr><th>Remediation</th><td>Require a valid authenticated session for this endpoint.</td></tr><tr><th>Limitations</th><td>Confirmed against a discovered resource/endpoint; not an exhaustive object enumeration. Confidence is a deterministic evidence score, not a probability.</td></tr><tr><th>Affected instances</th><td>1</td></tr></table><div class='ev'><h4>Request</h4><pre>GET http://127.0.0.1:8081/api/invoices/inv_a7Kq2LmZ9x/attachments
+accept: application/json, text/html;q=0.8</pre><h4>Response — HTTP 200</h4><pre>content-length: 273
+content-type: application/json
+
+{
+  &quot;data&quot;: {
+    &quot;invoice_id&quot;: &quot;inv_a7Kq2LmZ9x&quot;,
+    &quot;owner&quot;: &quot;alice&quot;,
+    &quot;attachments&quot;: [
+      {
+        &quot;filename&quot;: &quot;receipt-northwind-0141.pdf&quot;,
+        &quot;size_bytes&quot;: 48211,
+        &quot;private_marker&quot;: &quot;BLM-ALICE-ATT-7F3A&quot;
+      }
+    ]
+  },
+  &quot;request_id&quot;: &quot;8d4aca43-8e32-45ae-ba8b-613171c37782&quot;,
+  &quot;generated_at&quot;: &quot;2026-10-23T03:32:57.097847+00:00&quot;
+}</pre></div><details><summary>Instance: GET /api/invoices/inv_a7Kq2LmZ9x/attachments → 200</summary><div class='ev'><h4>Request</h4><pre>GET http://127.0.0.1:8081/api/invoices/inv_a7Kq2LmZ9x/attachments
+accept: application/json, text/html;q=0.8</pre><h4>Response — HTTP 200</h4><pre>content-length: 273
+content-type: application/json
+
+{
+  &quot;data&quot;: {
+    &quot;invoice_id&quot;: &quot;inv_a7Kq2LmZ9x&quot;,
+    &quot;owner&quot;: &quot;alice&quot;,
+    &quot;attachments&quot;: [
+      {
+        &quot;filename&quot;: &quot;receipt-northwind-0141.pdf&quot;,
+        &quot;size_bytes&quot;: 48211,
+        &quot;private_marker&quot;: &quot;BLM-ALICE-ATT-7F3A&quot;
+      }
+    ]
+  },
+  &quot;request_id&quot;: &quot;8d4aca43-8e32-45ae-ba8b-613171c37782&quot;,
+  &quot;generated_at&quot;: &quot;2026-10-23T03:32:57.097847+00:00&quot;
+}</pre></div></details></section><section class='finding sev-high'><h3>Broken Function Level Authorization <span class='badge sev-high'>high</span> <span class='badge conf'>confirmed</span></h3><table><tr><th>Finding ID</th><td>BL-c8cd8ae015</td></tr><tr><th>Check</th><td>BL-AUTO-BFLA — Broken Function Level Authorization</td></tr><tr><th>Endpoint</th><td>GET /api/admin/summary</td></tr><tr><th>Actor identity</th><td>alice</td></tr><tr><th>Expected rule</th><td>API5:2023 Broken Function Level Authorization · privileged function restricted by role</td></tr><tr><th>Expected behavior</th><td>Role of &#x27;alice&#x27; must not access the privileged endpoint /api/admin/summary.</td></tr><tr><th>Observed behavior</th><td>alice received HTTP 200 with privileged data (confidence 100%).</td></tr><tr><th>Severity</th><td>high — Confirmed authorization-boundary violation (API5:2023 Broken Function Level Authorization); confidence 100%.</td></tr><tr><th>Confirmation</th><td>confirmed</td></tr><tr><th>CWE</th><td>CWE-285</td></tr><tr><th>Remediation</th><td>Enforce a server-side role/function check on this endpoint before returning data.</td></tr><tr><th>Limitations</th><td>Confirmed against a discovered resource/endpoint; not an exhaustive object enumeration. Confidence is a deterministic evidence score, not a probability.</td></tr><tr><th>Affected instances</th><td>1</td></tr></table><div class='ev'><h4>Request</h4><pre>GET http://127.0.0.1:8081/api/admin/summary
+accept: application/json, text/html;q=0.8
+cookie: ledgerly_session=[REDACTED]</pre><h4>Response — HTTP 200</h4><pre>content-length: 272
+content-type: application/json
+
+{
+  &quot;data&quot;: {
+    &quot;total_invoices&quot;: 4,
+    &quot;totals_by_currency&quot;: {
+      &quot;EUR&quot;: 1692.5,
+      &quot;USD&quot;: 739.99
+    },
+    &quot;active_users&quot;: 3,
+    &quot;pending_review&quot;: [
+      &quot;EXP-2026-0178&quot;
+    ],
+    &quot;admin_marker&quot;: &quot;BLM-ADMIN-SUMMARY-91C2&quot;
+  },
+  &quot;request_id&quot;: &quot;a469db4e-08f2-4dcf-9b4c-18e7460420cb&quot;,
+  &quot;generated_at&quot;: &quot;2026-10-23T03:32:57.086376+00:00&quot;
+}</pre></div><details><summary>Instance: GET /api/admin/summary → 200</summary><div class='ev'><h4>Request</h4><pre>GET http://127.0.0.1:8081/api/admin/summary
+accept: application/json, text/html;q=0.8
+cookie: ledgerly_session=[REDACTED]</pre><h4>Response — HTTP 200</h4><pre>content-length: 272
+content-type: application/json
+
+{
+  &quot;data&quot;: {
+    &quot;total_invoices&quot;: 4,
+    &quot;totals_by_currency&quot;: {
+      &quot;EUR&quot;: 1692.5,
+      &quot;USD&quot;: 739.99
+    },
+    &quot;active_users&quot;: 3,
+    &quot;pending_review&quot;: [
+      &quot;EXP-2026-0178&quot;
+    ],
+    &quot;admin_marker&quot;: &quot;BLM-ADMIN-SUMMARY-91C2&quot;
+  },
+  &quot;request_id&quot;: &quot;a469db4e-08f2-4dcf-9b4c-18e7460420cb&quot;,
+  &quot;generated_at&quot;: &quot;2026-10-23T03:32:57.086376+00:00&quot;
+}</pre></div></details></section><section class='finding sev-high'><h3>Broken Function Level Authorization <span class='badge sev-high'>high</span> <span class='badge conf'>confirmed</span></h3><table><tr><th>Finding ID</th><td>BL-9fa3025e5f</td></tr><tr><th>Check</th><td>BL-AUTO-BFLA — Broken Function Level Authorization</td></tr><tr><th>Endpoint</th><td>GET /api/admin/summary</td></tr><tr><th>Actor identity</th><td>bob</td></tr><tr><th>Expected rule</th><td>API5:2023 Broken Function Level Authorization · privileged function restricted by role</td></tr><tr><th>Expected behavior</th><td>Role of &#x27;bob&#x27; must not access the privileged endpoint /api/admin/summary.</td></tr><tr><th>Observed behavior</th><td>bob received HTTP 200 with privileged data (confidence 100%).</td></tr><tr><th>Severity</th><td>high — Confirmed authorization-boundary violation (API5:2023 Broken Function Level Authorization); confidence 100%.</td></tr><tr><th>Confirmation</th><td>confirmed</td></tr><tr><th>CWE</th><td>CWE-285</td></tr><tr><th>Remediation</th><td>Enforce a server-side role/function check on this endpoint before returning data.</td></tr><tr><th>Limitations</th><td>Confirmed against a discovered resource/endpoint; not an exhaustive object enumeration. Confidence is a deterministic evidence score, not a probability.</td></tr><tr><th>Affected instances</th><td>1</td></tr></table><div class='ev'><h4>Request</h4><pre>GET http://127.0.0.1:8081/api/admin/summary
+accept: application/json, text/html;q=0.8
+cookie: ledgerly_session=[REDACTED]</pre><h4>Response — HTTP 200</h4><pre>content-length: 272
+content-type: application/json
+
+{
+  &quot;data&quot;: {
+    &quot;total_invoices&quot;: 4,
+    &quot;totals_by_currency&quot;: {
+      &quot;EUR&quot;: 1692.5,
+      &quot;USD&quot;: 739.99
+    },
+    &quot;active_users&quot;: 3,
+    &quot;pending_review&quot;: [
+      &quot;EXP-2026-0178&quot;
+    ],
+    &quot;admin_marker&quot;: &quot;BLM-ADMIN-SUMMARY-91C2&quot;
+  },
+  &quot;request_id&quot;: &quot;bf50aa6f-f2b1-48db-a4d3-6023ccd955f1&quot;,
+  &quot;generated_at&quot;: &quot;2026-10-23T03:32:57.089859+00:00&quot;
+}</pre></div><details><summary>Instance: GET /api/admin/summary → 200</summary><div class='ev'><h4>Request</h4><pre>GET http://127.0.0.1:8081/api/admin/summary
+accept: application/json, text/html;q=0.8
+cookie: ledgerly_session=[REDACTED]</pre><h4>Response — HTTP 200</h4><pre>content-length: 272
+content-type: application/json
+
+{
+  &quot;data&quot;: {
+    &quot;total_invoices&quot;: 4,
+    &quot;totals_by_currency&quot;: {
+      &quot;EUR&quot;: 1692.5,
+      &quot;USD&quot;: 739.99
+    },
+    &quot;active_users&quot;: 3,
+    &quot;pending_review&quot;: [
+      &quot;EXP-2026-0178&quot;
+    ],
+    &quot;admin_marker&quot;: &quot;BLM-ADMIN-SUMMARY-91C2&quot;
+  },
+  &quot;request_id&quot;: &quot;bf50aa6f-f2b1-48db-a4d3-6023ccd955f1&quot;,
+  &quot;generated_at&quot;: &quot;2026-10-23T03:32:57.089859+00:00&quot;
+}</pre></div></details></section><section class='finding sev-high'><h3>Broken Object Level Authorization <span class='badge sev-high'>high</span> <span class='badge conf'>confirmed</span></h3><table><tr><th>Finding ID</th><td>BL-5b96dc24d7</td></tr><tr><th>Check</th><td>BL-AUTO-BOLA — Broken Object Level Authorization</td></tr><tr><th>Endpoint</th><td>GET /api/invoices/{invoice_id}</td></tr><tr><th>Actor identity</th><td>bob</td></tr><tr><th>Expected rule</th><td>API1:2023 Broken Object Level Authorization · cross-user object access forbidden</td></tr><tr><th>Expected behavior</th><td>bob must not retrieve alice&#x27;s invoice inv_a7Kq2LmZ9x.</td></tr><tr><th>Observed behavior</th><td>bob received HTTP 200 containing the target resource&#x27;s protected data (confidence 100%).</td></tr><tr><th>Severity</th><td>high — Confirmed authorization-boundary violation (API1:2023 Broken Object Level Authorization); confidence 100%.</td></tr><tr><th>Confirmation</th><td>confirmed</td></tr><tr><th>CWE</th><td>CWE-639</td></tr><tr><th>Remediation</th><td>Verify resource ownership server-side before returning the object (owner == caller or caller is an authorized role).</td></tr><tr><th>Limitations</th><td>Confirmed against a discovered resource/endpoint; not an exhaustive object enumeration. Confidence is a deterministic evidence score, not a probability.</td></tr><tr><th>Affected instances</th><td>2</td></tr></table><div class='ev'><h4>Request</h4><pre>GET http://127.0.0.1:8081/api/invoices/inv_a7Kq2LmZ9x
+accept: application/json, text/html;q=0.8
+cookie: ledgerly_session=[REDACTED]</pre><h4>Response — HTTP 200</h4><pre>content-length: 421
+content-type: application/json
+
+{
+  &quot;data&quot;: {
+    &quot;invoice&quot;: {
+      &quot;id&quot;: &quot;inv_a7Kq2LmZ9x&quot;,
+      &quot;number&quot;: &quot;EXP-2026-0141&quot;,
+      &quot;owner&quot;: &quot;alice&quot;,
+      &quot;vendor&quot;: &quot;Northwind Office Supply&quot;,
+      &quot;category&quot;: &quot;office&quot;,
+      &quot;amount&quot;: &quot;412.50&quot;,
+      &quot;currency&quot;: &quot;EUR&quot;,
+      &quot;status&quot;: &quot;approved&quot;,
+      &quot;issued_on&quot;: &quot;2026-03-04&quot;,
+      &quot;notes&quot;: &quot;Ergonomic chair and monitor arm for home office.&quot;,
+      &quot;confidential_ref&quot;: &quot;BLM-ALICE-INV-7F3A&quot;
+    }
+  },
+  &quot;request_id&quot;: &quot;645f686b-cdd1-4d98-89be-e90c539a8226&quot;,
+  &quot;generated_at&quot;: &quot;2026-10-23T03:32:57.043863+00:00&quot;
+}</pre></div><details><summary>Instance: GET /api/invoices/inv_a7Kq2LmZ9x → 200</summary><div class='ev'><h4>Request</h4><pre>GET http://127.0.0.1:8081/api/invoices/inv_a7Kq2LmZ9x
+accept: application/json, text/html;q=0.8
+cookie: ledgerly_session=[REDACTED]</pre><h4>Response — HTTP 200</h4><pre>content-length: 421
+content-type: application/json
+
+{
+  &quot;data&quot;: {
+    &quot;invoice&quot;: {
+      &quot;id&quot;: &quot;inv_a7Kq2LmZ9x&quot;,
+      &quot;number&quot;: &quot;EXP-2026-0141&quot;,
+      &quot;owner&quot;: &quot;alice&quot;,
+      &quot;vendor&quot;: &quot;Northwind Office Supply&quot;,
+      &quot;category&quot;: &quot;office&quot;,
+      &quot;amount&quot;: &quot;412.50&quot;,
+      &quot;currency&quot;: &quot;EUR&quot;,
+      &quot;status&quot;: &quot;approved&quot;,
+      &quot;issued_on&quot;: &quot;2026-03-04&quot;,
+      &quot;notes&quot;: &quot;Ergonomic chair and monitor arm for home office.&quot;,
+      &quot;confidential_ref&quot;: &quot;BLM-ALICE-INV-7F3A&quot;
+    }
+  },
+  &quot;request_id&quot;: &quot;645f686b-cdd1-4d98-89be-e90c539a8226&quot;,
+  &quot;generated_at&quot;: &quot;2026-10-23T03:32:57.043863+00:00&quot;
+}</pre></div></details><details><summary>Instance: GET /api/invoices/inv_a3Vt8RpQ1c → 200</summary><div class='ev'><h4>Request</h4><pre>GET http://127.0.0.1:8081/api/invoices/inv_a3Vt8RpQ1c
+accept: application/json, text/html;q=0.8
+cookie: ledgerly_session=[REDACTED]</pre><h4>Response — HTTP 200</h4><pre>content-length: 413
+content-type: application/json
+
+{
+  &quot;data&quot;: {
+    &quot;invoice&quot;: {
+      &quot;id&quot;: &quot;inv_a3Vt8RpQ1c&quot;,
+      &quot;number&quot;: &quot;EXP-2026-0178&quot;,
+      &quot;owner&quot;: &quot;alice&quot;,
+      &quot;vendor&quot;: &quot;Harbor Rail Travel&quot;,
+      &quot;category&quot;: &quot;travel&quot;,
+      &quot;amount&quot;: &quot;1280.00&quot;,
+      &quot;currency&quot;: &quot;EUR&quot;,
+      &quot;status&quot;: &quot;submitted&quot;,
+      &quot;issued_on&quot;: &quot;2026-04-19&quot;,
+      &quot;notes&quot;: &quot;Client workshop travel, two return tickets.&quot;,
+      &quot;confidential_ref&quot;: &quot;BLM-ALICE-INV-2C8D&quot;
+    }
+  },
+  &quot;request_id&quot;: &quot;84b3d9f1-ead6-4292-bad4-f9dfc5746507&quot;,
+  &quot;generated_at&quot;: &quot;2026-10-23T03:32:57.047668+00:00&quot;
+}</pre></div></details></section><section class='finding sev-high'><h3>Broken Object Level Authorization <span class='badge sev-high'>high</span> <span class='badge conf'>confirmed</span></h3><table><tr><th>Finding ID</th><td>BL-ebe5b622df</td></tr><tr><th>Check</th><td>BL-AUTO-BOLA — Broken Object Level Authorization</td></tr><tr><th>Endpoint</th><td>GET /api/invoices/{invoice_id}</td></tr><tr><th>Actor identity</th><td>alice</td></tr><tr><th>Expected rule</th><td>API1:2023 Broken Object Level Authorization · cross-user object access forbidden</td></tr><tr><th>Expected behavior</th><td>alice must not retrieve bob&#x27;s invoice inv_b5Nc4WyH6e.</td></tr><tr><th>Observed behavior</th><td>alice received HTTP 200 containing the target resource&#x27;s protected data (confidence 100%).</td></tr><tr><th>Severity</th><td>high — Confirmed authorization-boundary violation (API1:2023 Broken Object Level Authorization); confidence 100%.</td></tr><tr><th>Confirmation</th><td>confirmed</td></tr><tr><th>CWE</th><td>CWE-639</td></tr><tr><th>Remediation</th><td>Verify resource ownership server-side before returning the object (owner == caller or caller is an authorized role).</td></tr><tr><th>Limitations</th><td>Confirmed against a discovered resource/endpoint; not an exhaustive object enumeration. Confidence is a deterministic evidence score, not a probability.</td></tr><tr><th>Affected instances</th><td>2</td></tr></table><div class='ev'><h4>Request</h4><pre>GET http://127.0.0.1:8081/api/invoices/inv_b5Nc4WyH6e
+accept: application/json, text/html;q=0.8
+cookie: ledgerly_session=[REDACTED]</pre><h4>Response — HTTP 200</h4><pre>content-length: 400
+content-type: application/json
+
+{
+  &quot;data&quot;: {
+    &quot;invoice&quot;: {
+      &quot;id&quot;: &quot;inv_b5Nc4WyH6e&quot;,
+      &quot;number&quot;: &quot;EXP-2026-0152&quot;,
+      &quot;owner&quot;: &quot;bob&quot;,
+      &quot;vendor&quot;: &quot;Cobalt Coworking&quot;,
+      &quot;category&quot;: &quot;workspace&quot;,
+      &quot;amount&quot;: &quot;650.00&quot;,
+      &quot;currency&quot;: &quot;USD&quot;,
+      &quot;status&quot;: &quot;approved&quot;,
+      &quot;issued_on&quot;: &quot;2026-03-21&quot;,
+      &quot;notes&quot;: &quot;Monthly hot-desk membership, March.&quot;,
+      &quot;confidential_ref&quot;: &quot;BLM-BOB-INV-5E19&quot;
+    }
+  },
+  &quot;request_id&quot;: &quot;430b65d3-b78f-421e-a767-664072dd0f17&quot;,
+  &quot;generated_at&quot;: &quot;2026-10-23T03:32:57.051842+00:00&quot;
+}</pre></div><details><summary>Instance: GET /api/invoices/inv_b5Nc4WyH6e → 200</summary><div class='ev'><h4>Request</h4><pre>GET http://127.0.0.1:8081/api/invoices/inv_b5Nc4WyH6e
+accept: application/json, text/html;q=0.8
+cookie: ledgerly_session=[REDACTED]</pre><h4>Response — HTTP 200</h4><pre>content-length: 400
+content-type: application/json
+
+{
+  &quot;data&quot;: {
+    &quot;invoice&quot;: {
+      &quot;id&quot;: &quot;inv_b5Nc4WyH6e&quot;,
+      &quot;number&quot;: &quot;EXP-2026-0152&quot;,
+      &quot;owner&quot;: &quot;bob&quot;,
+      &quot;vendor&quot;: &quot;Cobalt Coworking&quot;,
+      &quot;category&quot;: &quot;workspace&quot;,
+      &quot;amount&quot;: &quot;650.00&quot;,
+      &quot;currency&quot;: &quot;USD&quot;,
+      &quot;status&quot;: &quot;approved&quot;,
+      &quot;issued_on&quot;: &quot;2026-03-21&quot;,
+      &quot;notes&quot;: &quot;Monthly hot-desk membership, March.&quot;,
+      &quot;confidential_ref&quot;: &quot;BLM-BOB-INV-5E19&quot;
+    }
+  },
+  &quot;request_id&quot;: &quot;430b65d3-b78f-421e-a767-664072dd0f17&quot;,
+  &quot;generated_at&quot;: &quot;2026-10-23T03:32:57.051842+00:00&quot;
+}</pre></div></details><details><summary>Instance: GET /api/invoices/inv_b9Xs1DfJ3u → 200</summary><div class='ev'><h4>Request</h4><pre>GET http://127.0.0.1:8081/api/invoices/inv_b9Xs1DfJ3u
+accept: application/json, text/html;q=0.8
+cookie: ledgerly_session=[REDACTED]</pre><h4>Response — HTTP 200</h4><pre>content-length: 409
+content-type: application/json
+
+{
+  &quot;data&quot;: {
+    &quot;invoice&quot;: {
+      &quot;id&quot;: &quot;inv_b9Xs1DfJ3u&quot;,
+      &quot;number&quot;: &quot;EXP-2026-0190&quot;,
+      &quot;owner&quot;: &quot;bob&quot;,
+      &quot;vendor&quot;: &quot;Lumen Cloud Hosting&quot;,
+      &quot;category&quot;: &quot;software&quot;,
+      &quot;amount&quot;: &quot;89.99&quot;,
+      &quot;currency&quot;: &quot;USD&quot;,
+      &quot;status&quot;: &quot;rejected&quot;,
+      &quot;issued_on&quot;: &quot;2026-05-02&quot;,
+      &quot;notes&quot;: &quot;Personal project hosting; not reimbursable.&quot;,
+      &quot;confidential_ref&quot;: &quot;BLM-BOB-INV-9A04&quot;
+    }
+  },
+  &quot;request_id&quot;: &quot;6f3dd4db-a1e9-4764-b322-cc8fd1c84891&quot;,
+  &quot;generated_at&quot;: &quot;2026-10-23T03:32:57.055808+00:00&quot;
+}</pre></div></details></section><section class='finding sev-high'><h3>Broken Object Level Authorization <span class='badge sev-high'>high</span> <span class='badge conf'>confirmed</span></h3><table><tr><th>Finding ID</th><td>BL-467d1a2526</td></tr><tr><th>Check</th><td>BL-AUTO-BOLA — Broken Object Level Authorization</td></tr><tr><th>Endpoint</th><td>GET /api/invoices/{invoice_id}/attachments</td></tr><tr><th>Actor identity</th><td>bob</td></tr><tr><th>Expected rule</th><td>API1:2023 Broken Object Level Authorization · cross-user object access forbidden</td></tr><tr><th>Expected behavior</th><td>bob must not retrieve alice&#x27;s invoice inv_a7Kq2LmZ9x.</td></tr><tr><th>Observed behavior</th><td>bob received HTTP 200 containing the target resource&#x27;s protected data (confidence 100%).</td></tr><tr><th>Severity</th><td>high — Confirmed authorization-boundary violation (API1:2023 Broken Object Level Authorization); confidence 100%.</td></tr><tr><th>Confirmation</th><td>confirmed</td></tr><tr><th>CWE</th><td>CWE-639</td></tr><tr><th>Remediation</th><td>Verify resource ownership server-side before returning the object (owner == caller or caller is an authorized role).</td></tr><tr><th>Limitations</th><td>Confirmed against a discovered resource/endpoint; not an exhaustive object enumeration. Confidence is a deterministic evidence score, not a probability.</td></tr><tr><th>Affected instances</th><td>2</td></tr></table><div class='ev'><h4>Request</h4><pre>GET http://127.0.0.1:8081/api/invoices/inv_a7Kq2LmZ9x/attachments
+accept: application/json, text/html;q=0.8
+cookie: ledgerly_session=[REDACTED]</pre><h4>Response — HTTP 200</h4><pre>content-length: 273
+content-type: application/json
+
+{
+  &quot;data&quot;: {
+    &quot;invoice_id&quot;: &quot;inv_a7Kq2LmZ9x&quot;,
+    &quot;owner&quot;: &quot;alice&quot;,
+    &quot;attachments&quot;: [
+      {
+        &quot;filename&quot;: &quot;receipt-northwind-0141.pdf&quot;,
+        &quot;size_bytes&quot;: 48211,
+        &quot;private_marker&quot;: &quot;BLM-ALICE-ATT-7F3A&quot;
+      }
+    ]
+  },
+  &quot;request_id&quot;: &quot;189c48f9-a4cc-498b-9a7c-eb0af50f192c&quot;,
+  &quot;generated_at&quot;: &quot;2026-10-23T03:32:57.058784+00:00&quot;
+}</pre></div><details><summary>Instance: GET /api/invoices/inv_a7Kq2LmZ9x/attachments → 200</summary><div class='ev'><h4>Request</h4><pre>GET http://127.0.0.1:8081/api/invoices/inv_a7Kq2LmZ9x/attachments
+accept: application/json, text/html;q=0.8
+cookie: ledgerly_session=[REDACTED]</pre><h4>Response — HTTP 200</h4><pre>content-length: 273
+content-type: application/json
+
+{
+  &quot;data&quot;: {
+    &quot;invoice_id&quot;: &quot;inv_a7Kq2LmZ9x&quot;,
+    &quot;owner&quot;: &quot;alice&quot;,
+    &quot;attachments&quot;: [
+      {
+        &quot;filename&quot;: &quot;receipt-northwind-0141.pdf&quot;,
+        &quot;size_bytes&quot;: 48211,
+        &quot;private_marker&quot;: &quot;BLM-ALICE-ATT-7F3A&quot;
+      }
+    ]
+  },
+  &quot;request_id&quot;: &quot;189c48f9-a4cc-498b-9a7c-eb0af50f192c&quot;,
+  &quot;generated_at&quot;: &quot;2026-10-23T03:32:57.058784+00:00&quot;
+}</pre></div></details><details><summary>Instance: GET /api/invoices/inv_a3Vt8RpQ1c/attachments → 200</summary><div class='ev'><h4>Request</h4><pre>GET http://127.0.0.1:8081/api/invoices/inv_a3Vt8RpQ1c/attachments
+accept: application/json, text/html;q=0.8
+cookie: ledgerly_session=[REDACTED]</pre><h4>Response — HTTP 200</h4><pre>content-length: 268
+content-type: application/json
+
+{
+  &quot;data&quot;: {
+    &quot;invoice_id&quot;: &quot;inv_a3Vt8RpQ1c&quot;,
+    &quot;owner&quot;: &quot;alice&quot;,
+    &quot;attachments&quot;: [
+      {
+        &quot;filename&quot;: &quot;rail-tickets-0178.pdf&quot;,
+        &quot;size_bytes&quot;: 91022,
+        &quot;private_marker&quot;: &quot;BLM-ALICE-ATT-2C8D&quot;
+      }
+    ]
+  },
+  &quot;request_id&quot;: &quot;a3511851-18de-455a-8ba6-7b15efc0b1f8&quot;,
+  &quot;generated_at&quot;: &quot;2026-10-23T03:32:57.063153+00:00&quot;
+}</pre></div></details></section><section class='finding sev-high'><h3>Broken Object Level Authorization <span class='badge sev-high'>high</span> <span class='badge conf'>confirmed</span></h3><table><tr><th>Finding ID</th><td>BL-31c8f61096</td></tr><tr><th>Check</th><td>BL-AUTO-BOLA — Broken Object Level Authorization</td></tr><tr><th>Endpoint</th><td>GET /api/invoices/{invoice_id}/attachments</td></tr><tr><th>Actor identity</th><td>alice</td></tr><tr><th>Expected rule</th><td>API1:2023 Broken Object Level Authorization · cross-user object access forbidden</td></tr><tr><th>Expected behavior</th><td>alice must not retrieve bob&#x27;s invoice inv_b5Nc4WyH6e.</td></tr><tr><th>Observed behavior</th><td>alice received HTTP 200 containing the target resource&#x27;s protected data (confidence 100%).</td></tr><tr><th>Severity</th><td>high — Confirmed authorization-boundary violation (API1:2023 Broken Object Level Authorization); confidence 100%.</td></tr><tr><th>Confirmation</th><td>confirmed</td></tr><tr><th>CWE</th><td>CWE-639</td></tr><tr><th>Remediation</th><td>Verify resource ownership server-side before returning the object (owner == caller or caller is an authorized role).</td></tr><tr><th>Limitations</th><td>Confirmed against a discovered resource/endpoint; not an exhaustive object enumeration. Confidence is a deterministic evidence score, not a probability.</td></tr><tr><th>Affected instances</th><td>2</td></tr></table><div class='ev'><h4>Request</h4><pre>GET http://127.0.0.1:8081/api/invoices/inv_b5Nc4WyH6e/attachments
+accept: application/json, text/html;q=0.8
+cookie: ledgerly_session=[REDACTED]</pre><h4>Response — HTTP 200</h4><pre>content-length: 264
+content-type: application/json
+
+{
+  &quot;data&quot;: {
+    &quot;invoice_id&quot;: &quot;inv_b5Nc4WyH6e&quot;,
+    &quot;owner&quot;: &quot;bob&quot;,
+    &quot;attachments&quot;: [
+      {
+        &quot;filename&quot;: &quot;cobalt-march-0152.pdf&quot;,
+        &quot;size_bytes&quot;: 30554,
+        &quot;private_marker&quot;: &quot;BLM-BOB-ATT-5E19&quot;
+      }
+    ]
+  },
+  &quot;request_id&quot;: &quot;f3f2b556-b3ea-4507-ac00-0093615fa041&quot;,
+  &quot;generated_at&quot;: &quot;2026-10-23T03:32:57.069241+00:00&quot;
+}</pre></div><details><summary>Instance: GET /api/invoices/inv_b5Nc4WyH6e/attachments → 200</summary><div class='ev'><h4>Request</h4><pre>GET http://127.0.0.1:8081/api/invoices/inv_b5Nc4WyH6e/attachments
+accept: application/json, text/html;q=0.8
+cookie: ledgerly_session=[REDACTED]</pre><h4>Response — HTTP 200</h4><pre>content-length: 264
+content-type: application/json
+
+{
+  &quot;data&quot;: {
+    &quot;invoice_id&quot;: &quot;inv_b5Nc4WyH6e&quot;,
+    &quot;owner&quot;: &quot;bob&quot;,
+    &quot;attachments&quot;: [
+      {
+        &quot;filename&quot;: &quot;cobalt-march-0152.pdf&quot;,
+        &quot;size_bytes&quot;: 30554,
+        &quot;private_marker&quot;: &quot;BLM-BOB-ATT-5E19&quot;
+      }
+    ]
+  },
+  &quot;request_id&quot;: &quot;f3f2b556-b3ea-4507-ac00-0093615fa041&quot;,
+  &quot;generated_at&quot;: &quot;2026-10-23T03:32:57.069241+00:00&quot;
+}</pre></div></details><details><summary>Instance: GET /api/invoices/inv_b9Xs1DfJ3u/attachments → 200</summary><div class='ev'><h4>Request</h4><pre>GET http://127.0.0.1:8081/api/invoices/inv_b9Xs1DfJ3u/attachments
+accept: application/json, text/html;q=0.8
+cookie: ledgerly_session=[REDACTED]</pre><h4>Response — HTTP 200</h4><pre>content-length: 261
+content-type: application/json
+
+{
+  &quot;data&quot;: {
+    &quot;invoice_id&quot;: &quot;inv_b9Xs1DfJ3u&quot;,
+    &quot;owner&quot;: &quot;bob&quot;,
+    &quot;attachments&quot;: [
+      {
+        &quot;filename&quot;: &quot;lumen-may-0190.pdf&quot;,
+        &quot;size_bytes&quot;: 12870,
+        &quot;private_marker&quot;: &quot;BLM-BOB-ATT-9A04&quot;
+      }
+    ]
+  },
+  &quot;request_id&quot;: &quot;c097b7ac-edfb-4f8a-9753-6f0deaf6fd09&quot;,
+  &quot;generated_at&quot;: &quot;2026-10-23T03:32:57.072170+00:00&quot;
+}</pre></div></details></section>
+<h2>Scope and limitations</h2><ul><li>The scanner verifies the authorization rules declared in the manifest; it does not infer the application&#x27;s complete business policy.</li><li>Confirmations are proven against seeded demo resources named in the manifest, not an exhaustive enumeration of every object.</li><li>Security-header and cookie items are hardening observations, interpreted for local HTTP development.</li></ul>
+<p class="muted">Authorized scan of a developer-owned target. Findings and evidence are sanitized: no passwords, session tokens or authorization headers are included.</p>
+</body></html>
