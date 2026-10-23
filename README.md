@@ -1182,7 +1182,7 @@ Safe-by-default execution
 
 ---
 
-# Resume Version
+# One line version
 
 > **BoundaryLens — Authorization Security & Regression Testing Platform**  
 > Built a FastAPI + React security platform that discovers API endpoints and resources from OpenAPI/Postman/HAR, models multiple user and role identities, and automatically generates cross-identity authorization tests for BOLA/IDOR and BFLA. Implemented evidence-based differential response analysis, authorization matrix/graph visualization, SARIF reporting, strict scanner guardrails, and CI/CD regression gating.
